@@ -1,7 +1,9 @@
+
 export interface Idiom {
   id: string;
   word: string;
   definition: string;
+  example?: string;
 }
 
 export type GameMode = 'DEF_TO_IDIOM' | 'IDIOM_TO_DEF';
