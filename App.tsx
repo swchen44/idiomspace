@@ -1,9 +1,10 @@
+
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Sky, Stars, Text, useFont } from '@react-three/drei';
 import * as THREE from 'three';
 import { ALL_IDIOMS } from './data/idioms';
-import { Idiom, GameState, FloatingText, WorldMonster, GameMode, WrongRecord } from './types';
+import { Idiom, GameState, FloatingText, WorldMonster, GameMode, WrongRecord, WorldProp } from './types';
 import { Button } from './components/Button';
 import { HealthBar } from './components/HealthBar';
 import { FloatingTextDisplay } from './components/FloatingTextDisplay';
@@ -15,7 +16,7 @@ import { Sword, Trophy, Zap, RefreshCw, Skull, Map as MapIcon, Compass, BookOpen
 
 const WORLD_SIZE = 400;
 const MOVEMENT_SPEED = 15;
-const ROTATION_SPEED = 4;
+const ROTATION_SPEED = 3; // Slightly slower for better control
 const INTERACTION_DISTANCE = 8;
 const PLAYER_MAX_HP = 100;
 const MONSTER_HP = 40;
@@ -134,6 +135,27 @@ const FireworksDisplay: React.FC = () => {
         />
       ))}
     </>
+  );
+};
+
+const Tree: React.FC<{ prop: WorldProp }> = ({ prop }) => {
+  return (
+    <group position={[prop.x, 0, prop.z]} scale={[prop.scale, prop.scale, prop.scale]}>
+      {/* Trunk */}
+      <mesh position={[0, 1.5, 0]} castShadow>
+        <cylinderGeometry args={[0.4, 0.6, 3, 7]} />
+        <meshStandardMaterial color="#5d4037" />
+      </mesh>
+      {/* Leaves */}
+      <mesh position={[0, 4, 0]} castShadow>
+        <dodecahedronGeometry args={[2.2]} />
+        <meshStandardMaterial color="#15803d" />
+      </mesh>
+      <mesh position={[0, 5.5, 0]} castShadow>
+        <dodecahedronGeometry args={[1.5]} />
+        <meshStandardMaterial color="#22c55e" />
+      </mesh>
+    </group>
   );
 };
 
@@ -288,14 +310,6 @@ const Monster3D: React.FC<{
         <planeGeometry args={[3, 0.5]} />
         <meshBasicMaterial color="red" />
       </mesh>
-      
-      {/* Selection Ring */}
-      {isSelected && (
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1, 0]}>
-          <ringGeometry args={[2, 2.2, 32]} />
-          <meshBasicMaterial color="yellow" />
-        </mesh>
-      )}
     </group>
   );
 };
@@ -303,13 +317,15 @@ const Monster3D: React.FC<{
 const World: React.FC<{ 
   playerPos: {x: number, z: number, rotation: number}; 
   monsters: WorldMonster[];
+  props: WorldProp[];
   onPlayerMove: (newPos: {x: number, z: number}, rotation: number) => void;
   isBattling: boolean;
   isCelebration: boolean;
-}> = ({ playerPos, monsters, onPlayerMove, isBattling, isCelebration }) => {
+}> = ({ playerPos, monsters, props, onPlayerMove, isBattling, isCelebration }) => {
   const { camera } = useThree();
   const [controls, setControls] = useState({ up: false, down: false, left: false, right: false, rotateLeft: false, rotateRight: false, rotateUp: false, rotateDown: false });
-  const orbitAngle = useRef({ h: Math.PI, v: 0.5 }); // Horizontal and Vertical angles
+  // Initial angle: h=0 (behind), v=0.4 (slightly looking down)
+  const orbitAngle = useRef({ h: 0, v: 0.4 }); 
   const sunRef = useRef<THREE.DirectionalLight>(null);
   const sunPosition: [number, number, number] = [50, 150, 50]; // Fixed sun position
 
@@ -339,7 +355,7 @@ const World: React.FC<{
       }
     };
     
-    // Virtual control listeners (exposed to window for UI buttons)
+    // Virtual control listeners
     (window as any).setVirtualControl = (key: string, value: boolean) => {
       setControls(c => ({ ...c, [key]: value }));
     };
@@ -361,7 +377,7 @@ const World: React.FC<{
     if (controls.rotateDown) orbitAngle.current.v = Math.min(Math.PI / 2.5, orbitAngle.current.v + ROTATION_SPEED * delta * 0.5);
 
     // 2. Calculate Camera Position relative to player
-    const cameraDist = 20;
+    const cameraDist = 15; // Closer to player for "original perspective" feel
     const cameraOffset = new THREE.Vector3(
       Math.sin(orbitAngle.current.h) * cameraDist * Math.cos(orbitAngle.current.v),
       cameraDist * Math.sin(orbitAngle.current.v),
@@ -370,6 +386,7 @@ const World: React.FC<{
     
     const targetCamPos = new THREE.Vector3(playerPos.x, 0, playerPos.z).add(cameraOffset);
     camera.position.lerp(targetCamPos, 0.1);
+    // Look slightly above player's feet
     camera.lookAt(playerPos.x, 2, playerPos.z);
 
     // 3. Movement Logic (only if not battling)
@@ -424,10 +441,15 @@ const World: React.FC<{
       </mesh>
 
       {/* Grid Helper for reference */}
-      <gridHelper args={[WORLD_SIZE, 20, "#15803d", "#15803d"]} position={[0, 0.1, 0]} />
+      <gridHelper args={[WORLD_SIZE, 40, "#15803d", "#15803d"]} position={[0, 0.1, 0]} />
 
       <PlayerModel position={[playerPos.x, 0, playerPos.z]} rotation={playerPos.rotation} isMoving={!isBattling && (controls.up || controls.down || controls.left || controls.right)} />
       
+      {/* Props (Trees) */}
+      {props.map(prop => (
+        <Tree key={prop.id} prop={prop} />
+      ))}
+
       {monsters.map(monster => !monster.isDefeated && (
         <Monster3D key={monster.id} monster={monster} isSelected={false} />
       ))}
@@ -463,6 +485,7 @@ export default function App() {
 
   const [playerPos, setPlayerPos] = useState({ x: 0, z: 0, rotation: 0 });
   const [worldMonsters, setWorldMonsters] = useState<WorldMonster[]>([]);
+  const [worldProps, setWorldProps] = useState<WorldProp[]>([]);
   const [currentMonsterId, setCurrentMonsterId] = useState<number | null>(null);
   const [gameQueue, setGameQueue] = useState<Idiom[]>([]);
   const [floatingTexts, setFloatingTexts] = useState<FloatingText[]>([]);
@@ -561,6 +584,7 @@ export default function App() {
   };
 
   const initWorld = useCallback((count: number) => {
+    // Generate Monsters
     const newMonsters: WorldMonster[] = [];
     for (let i = 0; i < count; i++) {
       newMonsters.push({
@@ -574,6 +598,27 @@ export default function App() {
       });
     }
     setWorldMonsters(newMonsters);
+
+    // Generate Trees (World Props)
+    const newProps: WorldProp[] = [];
+    for (let i = 0; i < 50; i++) {
+        let x = (Math.random() - 0.5) * (WORLD_SIZE * 0.9);
+        let z = (Math.random() - 0.5) * (WORLD_SIZE * 0.9);
+        // Avoid spawn area
+        if (Math.abs(x) < 20 && Math.abs(z) < 20) {
+            x += 30;
+            z += 30;
+        }
+        newProps.push({
+            id: i,
+            type: 'tree',
+            x,
+            z,
+            scale: 0.8 + Math.random() * 0.5
+        });
+    }
+    setWorldProps(newProps);
+
     setPlayerPos({ x: 0, z: 0, rotation: 0 });
   }, []);
 
@@ -931,7 +976,7 @@ export default function App() {
         </div>
 
         <div className="mt-8 pt-6 border-t border-slate-700 flex justify-between text-sm text-slate-500">
-           <span>v2.2.0</span>
+           <span>v2.3.0</span>
            <div className="flex gap-4">
              <span>Exploration</span>
              <span>•</span>
@@ -1156,6 +1201,7 @@ export default function App() {
           <World 
              playerPos={playerPos} 
              monsters={worldMonsters} 
+             props={worldProps}
              onPlayerMove={handlePlayerMove} 
              isBattling={gameState.status === 'BATTLE'}
              isCelebration={isCelebration}
@@ -1237,9 +1283,9 @@ export default function App() {
             <div className="flex justify-center">
               <button 
                 className="w-14 h-14 bg-slate-800/50 rounded-full border border-slate-500 active:bg-blue-500/50 text-white flex items-center justify-center touch-none select-none"
-                onPointerDown={() => (window as any).setVirtualControl('up', true)}
-                onPointerUp={() => (window as any).setVirtualControl('up', false)}
-                onPointerLeave={() => (window as any).setVirtualControl('up', false)}
+                onPointerDown={(e) => { e.preventDefault(); (window as any).setVirtualControl('up', true); }}
+                onPointerUp={(e) => { e.preventDefault(); (window as any).setVirtualControl('up', false); }}
+                onPointerLeave={(e) => { e.preventDefault(); (window as any).setVirtualControl('up', false); }}
               >
                 <ArrowUp />
               </button>
@@ -1247,18 +1293,18 @@ export default function App() {
             <div className="flex gap-2">
                <button 
                 className="w-14 h-14 bg-slate-800/50 rounded-full border border-slate-500 active:bg-blue-500/50 text-white flex items-center justify-center touch-none select-none"
-                onPointerDown={() => (window as any).setVirtualControl('left', true)}
-                onPointerUp={() => (window as any).setVirtualControl('left', false)}
-                onPointerLeave={() => (window as any).setVirtualControl('left', false)}
+                onPointerDown={(e) => { e.preventDefault(); (window as any).setVirtualControl('left', true); }}
+                onPointerUp={(e) => { e.preventDefault(); (window as any).setVirtualControl('left', false); }}
+                onPointerLeave={(e) => { e.preventDefault(); (window as any).setVirtualControl('left', false); }}
               >
                 <ArrowLeft />
               </button>
               <div className="w-14 h-14"></div>
               <button 
                 className="w-14 h-14 bg-slate-800/50 rounded-full border border-slate-500 active:bg-blue-500/50 text-white flex items-center justify-center touch-none select-none"
-                onPointerDown={() => (window as any).setVirtualControl('right', true)}
-                onPointerUp={() => (window as any).setVirtualControl('right', false)}
-                onPointerLeave={() => (window as any).setVirtualControl('right', false)}
+                onPointerDown={(e) => { e.preventDefault(); (window as any).setVirtualControl('right', true); }}
+                onPointerUp={(e) => { e.preventDefault(); (window as any).setVirtualControl('right', false); }}
+                onPointerLeave={(e) => { e.preventDefault(); (window as any).setVirtualControl('right', false); }}
               >
                 <ArrowRight />
               </button>
@@ -1266,49 +1312,52 @@ export default function App() {
             <div className="flex justify-center">
                <button 
                 className="w-14 h-14 bg-slate-800/50 rounded-full border border-slate-500 active:bg-blue-500/50 text-white flex items-center justify-center touch-none select-none"
-                onPointerDown={() => (window as any).setVirtualControl('down', true)}
-                onPointerUp={() => (window as any).setVirtualControl('down', false)}
-                onPointerLeave={() => (window as any).setVirtualControl('down', false)}
+                onPointerDown={(e) => { e.preventDefault(); (window as any).setVirtualControl('down', true); }}
+                onPointerUp={(e) => { e.preventDefault(); (window as any).setVirtualControl('down', false); }}
+                onPointerLeave={(e) => { e.preventDefault(); (window as any).setVirtualControl('down', false); }}
               >
                 <ArrowDown />
               </button>
             </div>
           </div>
 
-           {/* Camera Controls */}
+           {/* Camera Controls - Refactored to match Left Side Size (w-14 h-14) and Layout (Cross/D-Pad) */}
            <div className="absolute bottom-8 right-8 z-30 md:hidden flex flex-col gap-2">
+             <div className="flex justify-center">
+                 <button 
+                 className="w-14 h-14 bg-slate-800/50 rounded-full border border-slate-500 active:bg-yellow-500/50 text-white flex items-center justify-center touch-none select-none"
+                 onPointerDown={(e) => { e.preventDefault(); (window as any).setVirtualControl('rotateUp', true); }}
+                 onPointerUp={(e) => { e.preventDefault(); (window as any).setVirtualControl('rotateUp', false); }}
+                 onPointerLeave={(e) => { e.preventDefault(); (window as any).setVirtualControl('rotateUp', false); }}
+               >
+                 <ChevronUp />
+               </button>
+             </div>
              <div className="flex gap-2">
                 <button 
-                 className="w-12 h-12 bg-slate-800/50 rounded-full border border-slate-500 active:bg-yellow-500/50 text-white flex items-center justify-center touch-none select-none"
-                 onPointerDown={() => (window as any).setVirtualControl('rotateLeft', true)}
-                 onPointerUp={() => (window as any).setVirtualControl('rotateLeft', false)}
-                 onPointerLeave={() => (window as any).setVirtualControl('rotateLeft', false)}
+                 className="w-14 h-14 bg-slate-800/50 rounded-full border border-slate-500 active:bg-yellow-500/50 text-white flex items-center justify-center touch-none select-none"
+                 onPointerDown={(e) => { e.preventDefault(); (window as any).setVirtualControl('rotateLeft', true); }}
+                 onPointerUp={(e) => { e.preventDefault(); (window as any).setVirtualControl('rotateLeft', false); }}
+                 onPointerLeave={(e) => { e.preventDefault(); (window as any).setVirtualControl('rotateLeft', false); }}
                >
                  <ChevronLeft />
                </button>
+               <div className="w-14 h-14"></div>
                <button 
-                 className="w-12 h-12 bg-slate-800/50 rounded-full border border-slate-500 active:bg-yellow-500/50 text-white flex items-center justify-center touch-none select-none"
-                 onPointerDown={() => (window as any).setVirtualControl('rotateRight', true)}
-                 onPointerUp={() => (window as any).setVirtualControl('rotateRight', false)}
-                 onPointerLeave={() => (window as any).setVirtualControl('rotateRight', false)}
+                 className="w-14 h-14 bg-slate-800/50 rounded-full border border-slate-500 active:bg-yellow-500/50 text-white flex items-center justify-center touch-none select-none"
+                 onPointerDown={(e) => { e.preventDefault(); (window as any).setVirtualControl('rotateRight', true); }}
+                 onPointerUp={(e) => { e.preventDefault(); (window as any).setVirtualControl('rotateRight', false); }}
+                 onPointerLeave={(e) => { e.preventDefault(); (window as any).setVirtualControl('rotateRight', false); }}
                >
                  <ChevronRight />
                </button>
              </div>
-             <div className="flex gap-2 justify-center">
-                 <button 
-                 className="w-12 h-12 bg-slate-800/50 rounded-full border border-slate-500 active:bg-yellow-500/50 text-white flex items-center justify-center touch-none select-none"
-                 onPointerDown={() => (window as any).setVirtualControl('rotateUp', true)}
-                 onPointerUp={() => (window as any).setVirtualControl('rotateUp', false)}
-                 onPointerLeave={() => (window as any).setVirtualControl('rotateUp', false)}
-               >
-                 <ChevronUp />
-               </button>
+             <div className="flex justify-center">
                <button 
-                 className="w-12 h-12 bg-slate-800/50 rounded-full border border-slate-500 active:bg-yellow-500/50 text-white flex items-center justify-center touch-none select-none"
-                 onPointerDown={() => (window as any).setVirtualControl('rotateDown', true)}
-                 onPointerUp={() => (window as any).setVirtualControl('rotateDown', false)}
-                 onPointerLeave={() => (window as any).setVirtualControl('rotateDown', false)}
+                 className="w-14 h-14 bg-slate-800/50 rounded-full border border-slate-500 active:bg-yellow-500/50 text-white flex items-center justify-center touch-none select-none"
+                 onPointerDown={(e) => { e.preventDefault(); (window as any).setVirtualControl('rotateDown', true); }}
+                 onPointerUp={(e) => { e.preventDefault(); (window as any).setVirtualControl('rotateDown', false); }}
+                 onPointerLeave={(e) => { e.preventDefault(); (window as any).setVirtualControl('rotateDown', false); }}
                >
                  <ChevronDown />
                </button>

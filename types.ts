@@ -41,3 +41,11 @@ export interface WorldMonster {
   color: string;
   bodyType: 'biped' | 'quadruped';
 }
+
+export interface WorldProp {
+  id: number;
+  type: 'tree';
+  x: number;
+  z: number;
+  scale: number;
+}
