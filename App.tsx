@@ -10,7 +10,26 @@ import { FloatingTextDisplay } from './components/FloatingTextDisplay';
 import { Sword, Trophy, Zap, RefreshCw, Skull, Map as MapIcon, Compass, BookOpen, X, List, Rotate3D, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Trash2, Library, LogOut, Users, Swords, Link as LinkIcon, AlertCircle, Loader2, FileJson, Copy, Check } from 'lucide-react';
 
 // Fix for missing types in JSX.IntrinsicElements when using @react-three/fiber
+// We augment both global JSX and React module JSX to ensure compatibility with different TS configurations
 declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      group: any;
+      mesh: any;
+      boxGeometry: any;
+      meshStandardMaterial: any;
+      meshBasicMaterial: any;
+      planeGeometry: any;
+      cylinderGeometry: any;
+      coneGeometry: any;
+      ambientLight: any;
+      directionalLight: any;
+      gridHelper: any;
+    }
+  }
+}
+
+declare module 'react' {
   namespace JSX {
     interface IntrinsicElements {
       group: any;
