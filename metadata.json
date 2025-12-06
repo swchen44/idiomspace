@@ -1,0 +1,5 @@
+{
+  "name": "Idiom Quest RPG",
+  "description": "A turn-based RPG battle game to master Chinese idioms. Defeat monsters by identifying the correct idiom for the given definition.",
+  "requestFramePermissions": []
+}
