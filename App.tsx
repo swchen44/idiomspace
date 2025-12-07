@@ -8,7 +8,7 @@ import { Idiom, GameState, FloatingText, WorldMonster, GameMode, WrongRecord, Wo
 import { Button } from './components/Button';
 import { HealthBar } from './components/HealthBar';
 import { FloatingTextDisplay } from './components/FloatingTextDisplay';
-import { Sword, Trophy, Zap, RefreshCw, Skull, Map as MapIcon, Compass, BookOpen, X, List, ArrowLeftRight, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Trash2, Library, LogOut, Users, Swords, Link as LinkIcon, AlertCircle, Loader2, FileJson, Copy, Check, Sparkles } from 'lucide-react';
+import { Sword, Trophy, Zap, RefreshCw, Skull, Map as MapIcon, Compass, BookOpen, X, List, ArrowLeftRight, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Trash2, Library, LogOut, Users, Swords, Link as LinkIcon, AlertCircle, Loader2, FileJson, Copy, Check, Sparkles, Gamepad2 } from 'lucide-react';
 
 // -----------------------------------------------------------------------------
 // Constants & Configuration
@@ -142,16 +142,16 @@ const Tree: React.FC<{ prop: WorldProp }> = ({ prop }) => {
   return (
     <group position={[prop.x, 0, prop.z]} scale={[prop.scale, prop.scale, prop.scale]}>
       {/* Trunk */}
-      <mesh position={[0, 1.5, 0]} castShadow>
+      <mesh position={[0, 1.5, 0]} castShadow receiveShadow>
         <cylinderGeometry args={[0.4, 0.6, 3, 7]} />
         <meshStandardMaterial color="#5d4037" />
       </mesh>
       {/* Leaves */}
-      <mesh position={[0, 4, 0]} castShadow>
+      <mesh position={[0, 4, 0]} castShadow receiveShadow>
         <dodecahedronGeometry args={[2.2]} />
         <meshStandardMaterial color="#15803d" />
       </mesh>
-      <mesh position={[0, 5.5, 0]} castShadow>
+      <mesh position={[0, 5.5, 0]} castShadow receiveShadow>
         <dodecahedronGeometry args={[1.5]} />
         <meshStandardMaterial color="#22c55e" />
       </mesh>
@@ -192,30 +192,30 @@ const PlayerModel: React.FC<{
   return (
     <group ref={group} position={position} rotation={[0, rotation, 0]} castShadow>
       {/* Head */}
-      <mesh position={[0, 4.5, 0]} castShadow>
+      <mesh position={[0, 4.5, 0]} castShadow receiveShadow>
         <boxGeometry args={[1.2, 1.2, 1.2]} />
         <meshStandardMaterial color="#fbbf24" /> {/* Yellow skin */}
       </mesh>
       {/* Torso */}
-      <mesh position={[0, 3, 0]} castShadow>
+      <mesh position={[0, 3, 0]} castShadow receiveShadow>
         <boxGeometry args={[2, 2, 1]} />
         <meshStandardMaterial color="#3b82f6" /> {/* Blue shirt */}
       </mesh>
       {/* Arms */}
-      <mesh ref={armL} position={[-1.5, 3, 0]} castShadow>
+      <mesh ref={armL} position={[-1.5, 3, 0]} castShadow receiveShadow>
         <boxGeometry args={[0.8, 2, 0.8]} />
         <meshStandardMaterial color="#fbbf24" />
       </mesh>
-      <mesh ref={armR} position={[1.5, 3, 0]} castShadow>
+      <mesh ref={armR} position={[1.5, 3, 0]} castShadow receiveShadow>
         <boxGeometry args={[0.8, 2, 0.8]} />
         <meshStandardMaterial color="#fbbf24" />
       </mesh>
       {/* Legs */}
-      <mesh ref={legL} position={[-0.5, 1, 0]} castShadow>
+      <mesh ref={legL} position={[-0.5, 1, 0]} castShadow receiveShadow>
         <boxGeometry args={[0.9, 2, 0.9]} />
         <meshStandardMaterial color="#22c55e" /> {/* Green pants */}
       </mesh>
-      <mesh ref={legR} position={[0.5, 1, 0]} castShadow>
+      <mesh ref={legR} position={[0.5, 1, 0]} castShadow receiveShadow>
         <boxGeometry args={[0.9, 2, 0.9]} />
         <meshStandardMaterial color="#22c55e" />
       </mesh>
@@ -233,8 +233,8 @@ const Monster3D: React.FC<{
   useFrame((state) => {
     if (group.current) {
       group.current.position.y = monster.bodyType === 'biped' 
-        ? Math.sin(state.clock.getElapsedTime() * 2 + monster.id) * 0.2
-        : Math.sin(state.clock.getElapsedTime() * 2 + monster.id) * 0.2 - 1.5; // Lower quadruped to ground
+        ? Math.sin(state.clock.getElapsedTime() * 2 + monster.id) * 0.1
+        : Math.sin(state.clock.getElapsedTime() * 2 + monster.id) * 0.1 - 0.5; // Adjusted height
     }
   });
 
@@ -244,7 +244,7 @@ const Monster3D: React.FC<{
         // Bipedal Monster (Humanoid-ish)
         <group>
            {/* Head */}
-          <mesh position={[0, 4, 0]} castShadow>
+          <mesh position={[0, 4, 0]} castShadow receiveShadow>
              <boxGeometry args={[1.5, 1.5, 1.5]} />
              <meshStandardMaterial color={monster.color} />
           </mesh>
@@ -258,49 +258,81 @@ const Monster3D: React.FC<{
              <meshBasicMaterial color="black" />
            </mesh>
           {/* Body */}
-          <mesh position={[0, 2.5, 0]} castShadow>
+          <mesh position={[0, 2.5, 0]} castShadow receiveShadow>
              <boxGeometry args={[1.8, 1.5, 1]} />
              <meshStandardMaterial color={monster.color} />
           </mesh>
           {/* Legs */}
-          <mesh position={[-0.5, 1, 0]} castShadow>
+          <mesh position={[-0.5, 1, 0]} castShadow receiveShadow>
              <boxGeometry args={[0.6, 1.5, 0.6]} />
              <meshStandardMaterial color="#1e293b" />
           </mesh>
-          <mesh position={[0.5, 1, 0]} castShadow>
+          <mesh position={[0.5, 1, 0]} castShadow receiveShadow>
              <boxGeometry args={[0.6, 1.5, 0.6]} />
              <meshStandardMaterial color="#1e293b" />
+          </mesh>
+          {/* Feet (2 distinct feet) */}
+          <mesh position={[-0.5, 0.1, 0.3]} castShadow receiveShadow>
+             <boxGeometry args={[0.7, 0.4, 0.9]} />
+             <meshStandardMaterial color="#0f172a" />
+          </mesh>
+          <mesh position={[0.5, 0.1, 0.3]} castShadow receiveShadow>
+             <boxGeometry args={[0.7, 0.4, 0.9]} />
+             <meshStandardMaterial color="#0f172a" />
           </mesh>
         </group>
       ) : (
-        // Quadruped Monster (Wolf/Dog-like)
-        <group scale={[0.8, 0.8, 0.8]}> 
+        // Quadruped Monster (Wolf/Dog-like) with 4 legs and feet
+        <group scale={[0.8, 0.8, 0.8]} position={[0, 0.5, 0]}> 
            {/* Body */}
-           <mesh position={[0, 2, 0]} castShadow>
+           <mesh position={[0, 2, 0]} castShadow receiveShadow>
              <boxGeometry args={[1.5, 1.2, 3]} />
              <meshStandardMaterial color={monster.color} />
            </mesh>
            {/* Head */}
-           <mesh position={[0, 3, 1.5]} castShadow>
+           <mesh position={[0, 3, 1.5]} castShadow receiveShadow>
              <boxGeometry args={[1.2, 1.2, 1.2]} />
              <meshStandardMaterial color={monster.color} />
            </mesh>
-           {/* Legs */}
-           <mesh position={[-0.6, 0.6, 1.2]} castShadow>
+           
+           {/* Front Left Leg & Foot */}
+           <mesh position={[-0.6, 0.6, 1.2]} castShadow receiveShadow>
              <boxGeometry args={[0.4, 1.2, 0.4]} />
              <meshStandardMaterial color="#1e293b" />
            </mesh>
-           <mesh position={[0.6, 0.6, 1.2]} castShadow>
+           <mesh position={[-0.6, 0, 1.2]} castShadow receiveShadow>
+             <boxGeometry args={[0.5, 0.3, 0.5]} />
+             <meshStandardMaterial color="#0f172a" />
+           </mesh>
+
+           {/* Front Right Leg & Foot */}
+           <mesh position={[0.6, 0.6, 1.2]} castShadow receiveShadow>
              <boxGeometry args={[0.4, 1.2, 0.4]} />
              <meshStandardMaterial color="#1e293b" />
            </mesh>
-           <mesh position={[-0.6, 0.6, -1.2]} castShadow>
+           <mesh position={[0.6, 0, 1.2]} castShadow receiveShadow>
+             <boxGeometry args={[0.5, 0.3, 0.5]} />
+             <meshStandardMaterial color="#0f172a" />
+           </mesh>
+
+           {/* Back Left Leg & Foot */}
+           <mesh position={[-0.6, 0.6, -1.2]} castShadow receiveShadow>
              <boxGeometry args={[0.4, 1.2, 0.4]} />
              <meshStandardMaterial color="#1e293b" />
            </mesh>
-           <mesh position={[0.6, 0.6, -1.2]} castShadow>
+           <mesh position={[-0.6, 0, -1.2]} castShadow receiveShadow>
+             <boxGeometry args={[0.5, 0.3, 0.5]} />
+             <meshStandardMaterial color="#0f172a" />
+           </mesh>
+
+           {/* Back Right Leg & Foot */}
+           <mesh position={[0.6, 0.6, -1.2]} castShadow receiveShadow>
              <boxGeometry args={[0.4, 1.2, 0.4]} />
              <meshStandardMaterial color="#1e293b" />
+           </mesh>
+           <mesh position={[0.6, 0, -1.2]} castShadow receiveShadow>
+             <boxGeometry args={[0.5, 0.3, 0.5]} />
+             <meshStandardMaterial color="#0f172a" />
            </mesh>
         </group>
       )}
@@ -324,10 +356,11 @@ const World: React.FC<{
 }> = ({ playerPos, monsters, props, onPlayerMove, isBattling, isCelebration }) => {
   const { camera } = useThree();
   const [controls, setControls] = useState({ up: false, down: false, left: false, right: false, rotateLeft: false, rotateRight: false, rotateUp: false, rotateDown: false });
-  // Initial angle: h=0 (behind), v=0.4 (slightly looking down)
-  const orbitAngle = useRef({ h: 0, v: 0.4 }); 
+  
+  // Initial angle: h=0 (behind), v=1.1 (Higher perspective ~60 degrees)
+  const orbitAngle = useRef({ h: 0, v: 1.1 }); 
   const sunRef = useRef<THREE.DirectionalLight>(null);
-  const sunPosition: [number, number, number] = [50, 150, 50]; // Fixed sun position
+  const sunPosition: [number, number, number] = [50, 150, 50]; 
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -374,10 +407,10 @@ const World: React.FC<{
     if (controls.rotateLeft) orbitAngle.current.h += ROTATION_SPEED * delta;
     if (controls.rotateRight) orbitAngle.current.h -= ROTATION_SPEED * delta;
     if (controls.rotateUp) orbitAngle.current.v = Math.max(0.1, orbitAngle.current.v - ROTATION_SPEED * delta * 0.5);
-    if (controls.rotateDown) orbitAngle.current.v = Math.min(Math.PI / 2.5, orbitAngle.current.v + ROTATION_SPEED * delta * 0.5);
+    if (controls.rotateDown) orbitAngle.current.v = Math.min(Math.PI / 2.1, orbitAngle.current.v + ROTATION_SPEED * delta * 0.5);
 
     // 2. Calculate Camera Position relative to player
-    const cameraDist = 15; // Closer to player for "original perspective" feel
+    const cameraDist = 30; 
     const cameraOffset = new THREE.Vector3(
       Math.sin(orbitAngle.current.h) * cameraDist * Math.cos(orbitAngle.current.v),
       cameraDist * Math.sin(orbitAngle.current.v),
@@ -420,15 +453,17 @@ const World: React.FC<{
 
   return (
     <>
-      <ambientLight intensity={0.7} />
+      <ambientLight intensity={0.5} />
       <directionalLight 
         ref={sunRef}
         position={sunPosition} 
         intensity={1.5} 
         castShadow
-        shadow-mapSize={[2048, 2048]}
+        shadow-mapSize={[4096, 4096]} 
+        shadow-bias={-0.0005}
       >
-        <orthographicCamera attach="shadow-camera" args={[-50, 50, 50, -50]} />
+        {/* Expanded shadow camera to cover the larger world area properly */}
+        <orthographicCamera attach="shadow-camera" args={[-300, 300, 300, -300]} />
       </directionalLight>
 
       <Sky sunPosition={sunPosition} />
@@ -496,7 +531,6 @@ export default function App() {
   const [showReview, setShowReview] = useState(false);
   const [gameMode, setGameMode] = useState<GameMode>('DEF_TO_IDIOM');
   const [selectedMonsterCount, setSelectedMonsterCount] = useState<number>(10);
-  const [battlePhase, setBattlePhase] = useState<0 | 1>(0);
   const [isCelebration, setIsCelebration] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
 
@@ -641,7 +675,8 @@ export default function App() {
       setActiveDataset(ALL_IDIOMS);
     }
 
-    const totalQuestions = selectedMonsterCount * 2;
+    // Change: 1 Question per monster
+    const totalQuestions = selectedMonsterCount;
     
     // 1. Filter wrong records for current mode
     const modeWrongRecords = wrongIdioms
@@ -696,7 +731,6 @@ export default function App() {
       level: 1,
       status: 'EXPLORING',
     });
-    setBattlePhase(0);
     setIsCelebration(false);
     setIsLoading(false);
   };
@@ -727,7 +761,6 @@ export default function App() {
 
     if (collidedMonster) {
       setCurrentMonsterId(collidedMonster.id);
-      setBattlePhase(0); // Reset phase on new encounter
       setGameState(prev => ({ ...prev, status: 'BATTLE', enemyHp: MONSTER_HP }));
     }
   };
@@ -744,7 +777,6 @@ export default function App() {
 
   const handleRunAway = () => {
     setGameState(prev => ({ ...prev, status: 'EXPLORING' }));
-    setBattlePhase(0);
     // Move player back slightly
     const pushBackDist = 5;
     setPlayerPos(prev => ({
@@ -757,16 +789,16 @@ export default function App() {
   const handleAttack = (option: Idiom) => {
     if (!currentMonsterId && currentMonsterId !== 0) return;
     
-    // Calculate current question index based on monster ID and phase
-    const questionIndex = (currentMonsterId! * 2) + battlePhase;
+    // Calculate current question index based on monster ID directly (1:1 mapping)
+    const questionIndex = currentMonsterId!;
     const currentQuestion = gameQueue[questionIndex];
-    if (!currentQuestion) return; // Should not happen
+    if (!currentQuestion) return;
 
     const isCorrect = option.id === currentQuestion.id;
 
     if (isCorrect) {
       // 1. Visual & Score Updates
-      const damage = Math.ceil(Math.random() * 20) + 30; // High damage to ensure 2-hit kill logic works visually if we wanted bar to move
+      const damage = 1000; // Instant kill logic visually
       triggerFloatingText(damage.toString(), 'damage');
       
       setGameState(prev => ({
@@ -774,6 +806,7 @@ export default function App() {
         score: prev.score + (100 * (prev.streak + 1)),
         streak: prev.streak + 1,
         playerHp: Math.min(prev.maxPlayerHp, prev.playerHp + 5),
+        enemyHp: 0, // Visual instant kill
       }));
       triggerFloatingText("+5 HP", "heal");
 
@@ -803,26 +836,18 @@ export default function App() {
   const handleFeedbackNext = () => {
     setShowFeedback(false);
     
-    // Resume flow after feedback
-    if (battlePhase === 0) {
-      // Phase 1 -> Phase 2
-      triggerFloatingText("Combo!", "damage");
-      setBattlePhase(1);
-    } else {
-      // Phase 2 -> Defeated
-      setWorldMonsters(prev => prev.map(m => 
-        m.id === currentMonsterId ? { ...m, isDefeated: true } : m
-      ));
+    // Defeated
+    setWorldMonsters(prev => prev.map(m => 
+      m.id === currentMonsterId ? { ...m, isDefeated: true } : m
+    ));
 
-      // Check for total victory
-      const remaining = worldMonsters.filter(m => !m.isDefeated && m.id !== currentMonsterId).length;
-      if (remaining === 0) {
-        setGameState(prev => ({ ...prev, status: 'EXPLORING' })); // Temp to clear battle UI
-        startCelebration();
-      } else {
-        setGameState(prev => ({ ...prev, status: 'EXPLORING' }));
-      }
-      setBattlePhase(0);
+    // Check for total victory
+    const remaining = worldMonsters.filter(m => !m.isDefeated && m.id !== currentMonsterId).length;
+    if (remaining === 0) {
+      setGameState(prev => ({ ...prev, status: 'EXPLORING' })); // Temp to clear battle UI
+      startCelebration();
+    } else {
+      setGameState(prev => ({ ...prev, status: 'EXPLORING' }));
     }
   };
 
@@ -976,7 +1001,7 @@ export default function App() {
         </div>
 
         <div className="mt-8 pt-6 border-t border-slate-700 flex justify-between text-sm text-slate-500">
-           <span>v2.3.0</span>
+           <span>v2.5.0</span>
            <div className="flex gap-4">
              <span>Exploration</span>
              <span>•</span>
@@ -989,7 +1014,7 @@ export default function App() {
 
   const renderFeedbackOverlay = () => {
     // Determine current question to show feedback for
-    const questionIndex = (currentMonsterId! * 2) + battlePhase;
+    const questionIndex = currentMonsterId!;
     const currentQuestion = gameQueue[questionIndex];
     if (!currentQuestion) return null;
 
@@ -1038,7 +1063,7 @@ export default function App() {
     // If showing feedback, render that instead
     if (showFeedback) return renderFeedbackOverlay();
 
-    const questionIndex = (currentMonsterId! * 2) + battlePhase;
+    const questionIndex = currentMonsterId!;
     const currentQuestion = gameQueue[questionIndex];
     if (!currentQuestion) return null;
 
@@ -1081,11 +1106,6 @@ export default function App() {
         {/* Question Area - Centered and larger */}
         <div className="flex-1 flex flex-col items-center justify-center p-4 max-w-4xl mx-auto w-full gap-6">
           <div className="w-full bg-slate-800/90 border-4 border-yellow-500/50 rounded-2xl p-6 md:p-10 shadow-[0_0_40px_rgba(0,0,0,0.5)] backdrop-blur-md relative overflow-hidden flex flex-col items-center justify-center min-h-[200px] md:min-h-[280px]">
-             {/* Phase Indicator */}
-             <div className="absolute top-3 left-4 flex gap-1">
-                <div className={`w-3 h-3 rounded-full ${battlePhase >= 0 ? 'bg-yellow-400 shadow-[0_0_8px_yellow]' : 'bg-slate-600'}`} />
-                <div className={`w-3 h-3 rounded-full ${battlePhase >= 1 ? 'bg-yellow-400 shadow-[0_0_8px_yellow]' : 'bg-slate-600'}`} />
-             </div>
              
              <h2 className="text-slate-400 text-sm md:text-lg font-bold uppercase tracking-widest mb-4">
                {isDefToIdiom ? "Identify the Idiom" : "Select the Definition"}
@@ -1278,11 +1298,11 @@ export default function App() {
             WASD to Move • ARROWS to Rotate Cam
           </div>
 
-          {/* Virtual Controls for Touch */}
-          <div className="absolute bottom-8 left-8 z-30 md:hidden flex flex-col gap-2">
+          {/* Virtual Controls for Touch - Now Always Visible (Movement) */}
+          <div className="absolute bottom-8 left-8 z-30 flex flex-col gap-2">
             <div className="flex justify-center">
               <button 
-                className="w-14 h-14 bg-slate-800/50 rounded-full border border-slate-500 active:bg-blue-500/50 text-white flex items-center justify-center touch-none select-none"
+                className="w-14 h-14 bg-slate-800/50 rounded-full border border-slate-500 active:bg-blue-500/50 text-white flex items-center justify-center touch-none select-none hover:bg-slate-700/50 transition-colors"
                 onPointerDown={(e) => { e.preventDefault(); (window as any).setVirtualControl('up', true); }}
                 onPointerUp={(e) => { e.preventDefault(); (window as any).setVirtualControl('up', false); }}
                 onPointerLeave={(e) => { e.preventDefault(); (window as any).setVirtualControl('up', false); }}
@@ -1292,7 +1312,7 @@ export default function App() {
             </div>
             <div className="flex gap-2">
                <button 
-                className="w-14 h-14 bg-slate-800/50 rounded-full border border-slate-500 active:bg-blue-500/50 text-white flex items-center justify-center touch-none select-none"
+                className="w-14 h-14 bg-slate-800/50 rounded-full border border-slate-500 active:bg-blue-500/50 text-white flex items-center justify-center touch-none select-none hover:bg-slate-700/50 transition-colors"
                 onPointerDown={(e) => { e.preventDefault(); (window as any).setVirtualControl('left', true); }}
                 onPointerUp={(e) => { e.preventDefault(); (window as any).setVirtualControl('left', false); }}
                 onPointerLeave={(e) => { e.preventDefault(); (window as any).setVirtualControl('left', false); }}
@@ -1301,7 +1321,7 @@ export default function App() {
               </button>
               <div className="w-14 h-14"></div>
               <button 
-                className="w-14 h-14 bg-slate-800/50 rounded-full border border-slate-500 active:bg-blue-500/50 text-white flex items-center justify-center touch-none select-none"
+                className="w-14 h-14 bg-slate-800/50 rounded-full border border-slate-500 active:bg-blue-500/50 text-white flex items-center justify-center touch-none select-none hover:bg-slate-700/50 transition-colors"
                 onPointerDown={(e) => { e.preventDefault(); (window as any).setVirtualControl('right', true); }}
                 onPointerUp={(e) => { e.preventDefault(); (window as any).setVirtualControl('right', false); }}
                 onPointerLeave={(e) => { e.preventDefault(); (window as any).setVirtualControl('right', false); }}
@@ -1311,7 +1331,7 @@ export default function App() {
             </div>
             <div className="flex justify-center">
                <button 
-                className="w-14 h-14 bg-slate-800/50 rounded-full border border-slate-500 active:bg-blue-500/50 text-white flex items-center justify-center touch-none select-none"
+                className="w-14 h-14 bg-slate-800/50 rounded-full border border-slate-500 active:bg-blue-500/50 text-white flex items-center justify-center touch-none select-none hover:bg-slate-700/50 transition-colors"
                 onPointerDown={(e) => { e.preventDefault(); (window as any).setVirtualControl('down', true); }}
                 onPointerUp={(e) => { e.preventDefault(); (window as any).setVirtualControl('down', false); }}
                 onPointerLeave={(e) => { e.preventDefault(); (window as any).setVirtualControl('down', false); }}
@@ -1321,11 +1341,11 @@ export default function App() {
             </div>
           </div>
 
-           {/* Camera Controls - Refactored to match Left Side Size (w-14 h-14) and Layout (Cross/D-Pad) */}
-           <div className="absolute bottom-8 right-8 z-30 md:hidden flex flex-col gap-2">
+           {/* Camera Controls */}
+           <div className="absolute bottom-8 right-8 z-30 flex flex-col gap-2">
              <div className="flex justify-center">
                  <button 
-                 className="w-14 h-14 bg-slate-800/50 rounded-full border border-slate-500 active:bg-yellow-500/50 text-white flex items-center justify-center touch-none select-none"
+                 className="w-14 h-14 bg-slate-800/50 rounded-full border border-slate-500 active:bg-yellow-500/50 text-white flex items-center justify-center touch-none select-none hover:bg-slate-700/50 transition-colors"
                  onPointerDown={(e) => { e.preventDefault(); (window as any).setVirtualControl('rotateUp', true); }}
                  onPointerUp={(e) => { e.preventDefault(); (window as any).setVirtualControl('rotateUp', false); }}
                  onPointerLeave={(e) => { e.preventDefault(); (window as any).setVirtualControl('rotateUp', false); }}
@@ -1335,7 +1355,7 @@ export default function App() {
              </div>
              <div className="flex gap-2">
                 <button 
-                 className="w-14 h-14 bg-slate-800/50 rounded-full border border-slate-500 active:bg-yellow-500/50 text-white flex items-center justify-center touch-none select-none"
+                 className="w-14 h-14 bg-slate-800/50 rounded-full border border-slate-500 active:bg-yellow-500/50 text-white flex items-center justify-center touch-none select-none hover:bg-slate-700/50 transition-colors"
                  onPointerDown={(e) => { e.preventDefault(); (window as any).setVirtualControl('rotateLeft', true); }}
                  onPointerUp={(e) => { e.preventDefault(); (window as any).setVirtualControl('rotateLeft', false); }}
                  onPointerLeave={(e) => { e.preventDefault(); (window as any).setVirtualControl('rotateLeft', false); }}
@@ -1344,7 +1364,7 @@ export default function App() {
                </button>
                <div className="w-14 h-14"></div>
                <button 
-                 className="w-14 h-14 bg-slate-800/50 rounded-full border border-slate-500 active:bg-yellow-500/50 text-white flex items-center justify-center touch-none select-none"
+                 className="w-14 h-14 bg-slate-800/50 rounded-full border border-slate-500 active:bg-yellow-500/50 text-white flex items-center justify-center touch-none select-none hover:bg-slate-700/50 transition-colors"
                  onPointerDown={(e) => { e.preventDefault(); (window as any).setVirtualControl('rotateRight', true); }}
                  onPointerUp={(e) => { e.preventDefault(); (window as any).setVirtualControl('rotateRight', false); }}
                  onPointerLeave={(e) => { e.preventDefault(); (window as any).setVirtualControl('rotateRight', false); }}
@@ -1354,7 +1374,7 @@ export default function App() {
              </div>
              <div className="flex justify-center">
                <button 
-                 className="w-14 h-14 bg-slate-800/50 rounded-full border border-slate-500 active:bg-yellow-500/50 text-white flex items-center justify-center touch-none select-none"
+                 className="w-14 h-14 bg-slate-800/50 rounded-full border border-slate-500 active:bg-yellow-500/50 text-white flex items-center justify-center touch-none select-none hover:bg-slate-700/50 transition-colors"
                  onPointerDown={(e) => { e.preventDefault(); (window as any).setVirtualControl('rotateDown', true); }}
                  onPointerUp={(e) => { e.preventDefault(); (window as any).setVirtualControl('rotateDown', false); }}
                  onPointerLeave={(e) => { e.preventDefault(); (window as any).setVirtualControl('rotateDown', false); }}
