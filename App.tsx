@@ -534,6 +534,9 @@ export default function App() {
   const [isCelebration, setIsCelebration] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
 
+  const [currentOptions, setCurrentOptions] = useState<Idiom[]>([]);
+  const [selectedWrongIds, setSelectedWrongIds] = useState<string[]>([]);
+
   // Audio Context (created on user interaction)
   const audioCtxRef = useRef<AudioContext | null>(null);
 
@@ -761,7 +764,22 @@ export default function App() {
 
     if (collidedMonster) {
       setCurrentMonsterId(collidedMonster.id);
-      setGameState(prev => ({ ...prev, status: 'BATTLE', enemyHp: MONSTER_HP }));
+      
+      // Generate Options for Battle once upon encounter
+      const questionIndex = collidedMonster.id;
+      const currentQuestion = gameQueue[questionIndex];
+      
+      if (currentQuestion) {
+          const otherIdioms = activeDataset.filter(i => i.id !== currentQuestion.id);
+          const safeDistractorsCount = Math.min(3, otherIdioms.length);
+          const distractors = otherIdioms.sort(() => 0.5 - Math.random()).slice(0, safeDistractorsCount);
+          const options = [...distractors, currentQuestion].sort(() => 0.5 - Math.random());
+          
+          setCurrentOptions(options);
+          setSelectedWrongIds([]);
+          
+          setGameState(prev => ({ ...prev, status: 'BATTLE', enemyHp: MONSTER_HP }));
+      }
     }
   };
 
@@ -788,6 +806,9 @@ export default function App() {
 
   const handleAttack = (option: Idiom) => {
     if (!currentMonsterId && currentMonsterId !== 0) return;
+    
+    // Check if already selected (wrong)
+    if (selectedWrongIds.includes(option.id)) return;
     
     // Calculate current question index based on monster ID directly (1:1 mapping)
     const questionIndex = currentMonsterId!;
@@ -816,6 +837,8 @@ export default function App() {
     } else {
       // Wrong Answer Logic
       triggerFloatingText("Miss", "miss");
+      setSelectedWrongIds(prev => [...prev, option.id]); // Track wrong selection
+
       setGameState(prev => ({
         ...prev,
         streak: 0,
@@ -1067,18 +1090,11 @@ export default function App() {
     const currentQuestion = gameQueue[questionIndex];
     if (!currentQuestion) return null;
 
-    // Distractors Logic
-    // 1. Get other idioms to pick distractors from
-    const otherIdioms = activeDataset.filter(i => i.id !== currentQuestion.id);
-    
-    // 2. Randomly select 3 distractors
-    const distractors = otherIdioms.sort(() => 0.5 - Math.random()).slice(0, 3);
-    
-    // 3. Combine with correct answer and shuffle
-    const options = [...distractors, currentQuestion].sort(() => 0.5 - Math.random());
-
     const isDefToIdiom = gameMode === 'DEF_TO_IDIOM';
     const questionText = isDefToIdiom ? currentQuestion.definition : currentQuestion.word;
+
+    // Use persisted options
+    const options = currentOptions;
 
     return (
       <div className="absolute inset-0 flex flex-col z-40 bg-slate-900/30">
@@ -1117,21 +1133,25 @@ export default function App() {
 
           {/* Options Grid */}
           <div className={`w-full grid gap-4 ${isDefToIdiom ? 'grid-cols-2' : 'grid-cols-1 md:grid-cols-2'} overflow-y-auto max-h-[40vh] p-2`}>
-            {options.map((option) => (
-              <Button
-                key={option.id}
-                onClick={() => handleAttack(option)}
-                variant="secondary"
-                size="lg"
-                className={`
-                  w-full shadow-xl border-2 border-slate-600 hover:border-yellow-400 hover:bg-slate-700 
-                  transition-all duration-200 active:scale-[0.98]
-                  ${isDefToIdiom ? 'text-2xl md:text-3xl font-bold py-6' : 'text-lg md:text-xl py-4 text-left px-6 leading-relaxed'}
-                `}
-              >
-                {isDefToIdiom ? option.word : option.definition}
-              </Button>
-            ))}
+            {options.map((option) => {
+              const isWrong = selectedWrongIds.includes(option.id);
+              return (
+                <Button
+                  key={option.id}
+                  onClick={() => handleAttack(option)}
+                  disabled={isWrong}
+                  variant={isWrong ? "secondary" : "secondary"}
+                  className={`
+                    w-full shadow-xl border-2 hover:border-yellow-400
+                    transition-all duration-200 active:scale-[0.98]
+                    ${isDefToIdiom ? 'text-2xl md:text-3xl font-bold py-6' : 'text-lg md:text-xl py-4 text-left px-6 leading-relaxed'}
+                    ${isWrong ? 'opacity-40 cursor-not-allowed border-red-900 bg-slate-800 hover:border-red-900 hover:bg-slate-800' : 'border-slate-600 hover:bg-slate-700'}
+                  `}
+                >
+                  {isDefToIdiom ? option.word : option.definition}
+                </Button>
+              );
+            })}
           </div>
         </div>
       </div>
