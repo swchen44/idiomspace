@@ -14,7 +14,7 @@ import { Sword, Trophy, Zap, RefreshCw, Skull, Map as MapIcon, Compass, BookOpen
 // Constants & Configuration
 // -----------------------------------------------------------------------------
 
-const WORLD_SIZE = 400;
+const WORLD_SIZE = 250;
 const MOVEMENT_SPEED = 15;
 const ROTATION_SPEED = 3; // Slightly slower for better control
 const INTERACTION_DISTANCE = 8;
