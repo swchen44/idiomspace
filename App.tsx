@@ -611,9 +611,10 @@ export default function App() {
         };
       });
 
-      if (parsed.length < 20) {
-        throw new Error(`Dataset too small. Please provide at least 20 items (Found: ${parsed.length})`);
+      if (parsed.length === 0) {
+        throw new Error(`Dataset is empty.`);
       }
+      // Allow any size dataset, remove previous limit check
       return parsed;
     } catch (err: any) {
       throw new Error(err.message || 'Failed to load JSON data');
@@ -679,51 +680,56 @@ export default function App() {
     }
 
     // Change: 1 Question per monster
-    const totalQuestions = selectedMonsterCount;
+    // Clamp monster count to dataset size if dataset is smaller
+    const effectiveMonsterCount = Math.min(selectedMonsterCount, dataset.length);
+    const totalQuestions = effectiveMonsterCount;
     
-    // 1. Filter wrong records for current mode
-    const modeWrongRecords = wrongIdioms
-      .filter(r => r.mode === mode)
-      .map(r => r.idiom);
-
-    // 2. Select questions
-    // Priority: Wrong answers -> Random from dataset (excluding wrong to avoid dupes if possible)
     let selectedQuestions: Idiom[] = [];
-    
-    // De-duplicate wrong records based on word
-    const uniqueWrong = Array.from(new Map(modeWrongRecords.map(item => [item.word, item])).values());
-    
-    // Add wrong answers first (up to total needed)
-    selectedQuestions = [...uniqueWrong];
-    
-    // If we have more wrong answers than needed, shuffle and cut
-    if (selectedQuestions.length > totalQuestions) {
-      selectedQuestions = selectedQuestions.sort(() => 0.5 - Math.random()).slice(0, totalQuestions);
-    }
-    
-    // Fill remaining slots with random idioms from active dataset
-    if (selectedQuestions.length < totalQuestions) {
-      const needed = totalQuestions - selectedQuestions.length;
-      const wrongWords = new Set(selectedQuestions.map(i => i.word));
-      const pool = dataset.filter(i => !wrongWords.has(i.word));
-      
-      const randomFill = pool.sort(() => 0.5 - Math.random()).slice(0, needed);
-      selectedQuestions = [...selectedQuestions, ...randomFill];
-      
-      // If still not enough (small dataset), reuse pool
-      if (selectedQuestions.length < totalQuestions) {
-         const remaining = totalQuestions - selectedQuestions.length;
-         const extra = dataset.sort(() => 0.5 - Math.random()).slice(0, remaining);
-         selectedQuestions = [...selectedQuestions, ...extra];
-      }
-    }
 
-    // Shuffle final queue
-    selectedQuestions = selectedQuestions.sort(() => 0.5 - Math.random());
+    if (isCustomMode) {
+      // In Custom Mode, prioritize the dataset content directly and ignore history 
+      // to avoid ID mismatches or testing old content.
+      selectedQuestions = [...dataset].sort(() => 0.5 - Math.random()).slice(0, totalQuestions);
+    } else {
+      // Standard Mode with History Logic
+      const modeWrongRecords = wrongIdioms
+        .filter(r => r.mode === mode)
+        .map(r => r.idiom);
+
+      // De-duplicate wrong records based on word
+      const uniqueWrong = Array.from(new Map(modeWrongRecords.map(item => [item.word, item])).values());
+      
+      // Add wrong answers first (up to total needed)
+      selectedQuestions = [...uniqueWrong];
+      
+      // If we have more wrong answers than needed, shuffle and cut
+      if (selectedQuestions.length > totalQuestions) {
+        selectedQuestions = selectedQuestions.sort(() => 0.5 - Math.random()).slice(0, totalQuestions);
+      }
+      
+      // Fill remaining slots with random idioms from active dataset
+      if (selectedQuestions.length < totalQuestions) {
+        const needed = totalQuestions - selectedQuestions.length;
+        const wrongWords = new Set(selectedQuestions.map(i => i.word));
+        const pool = dataset.filter(i => !wrongWords.has(i.word));
+        
+        const randomFill = pool.sort(() => 0.5 - Math.random()).slice(0, needed);
+        selectedQuestions = [...selectedQuestions, ...randomFill];
+        
+        // If still not enough (unlikely for built-in), reuse pool
+        if (selectedQuestions.length < totalQuestions) {
+          const remaining = totalQuestions - selectedQuestions.length;
+          const extra = dataset.sort(() => 0.5 - Math.random()).slice(0, remaining);
+          selectedQuestions = [...selectedQuestions, ...extra];
+        }
+      }
+      // Shuffle final queue
+      selectedQuestions = selectedQuestions.sort(() => 0.5 - Math.random());
+    }
 
     setGameQueue(selectedQuestions);
     setGameMode(mode);
-    initWorld(selectedMonsterCount);
+    initWorld(effectiveMonsterCount);
     setGameState({
       playerHp: PLAYER_MAX_HP,
       maxPlayerHp: PLAYER_MAX_HP,
