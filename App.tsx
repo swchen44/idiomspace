@@ -8,7 +8,7 @@ import { Idiom, GameState, FloatingText, WorldMonster, GameMode, WrongRecord, Wo
 import { Button } from './components/Button';
 import { HealthBar } from './components/HealthBar';
 import { FloatingTextDisplay } from './components/FloatingTextDisplay';
-import { Sword, Trophy, Zap, RefreshCw, Skull, Map as MapIcon, Compass, BookOpen, X, List, ArrowLeftRight, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Trash2, Library, LogOut, Users, Swords, Link as LinkIcon, AlertCircle, Loader2, FileJson, Copy, Check, Sparkles, Gamepad2 } from 'lucide-react';
+import { Sword, Trophy, Zap, RefreshCw, Skull, Map as MapIcon, Compass, BookOpen, X, List, ArrowLeftRight, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Trash2, Library, LogOut, Users, Swords, Link as LinkIcon, AlertCircle, Loader2, FileJson, Copy, Check, Sparkles, Gamepad2, History } from 'lucide-react';
 
 // -----------------------------------------------------------------------------
 // Constants & Configuration
@@ -517,6 +517,13 @@ export default function App() {
   const [menuError, setMenuError] = useState<string | null>(null);
   const [showExampleModal, setShowExampleModal] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
+  
+  // History State
+  const [recentUrls, setRecentUrls] = useState<string[]>(() => {
+    const saved = localStorage.getItem('idiomQuest_recentUrls');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [showHistory, setShowHistory] = useState(false);
 
   const [playerPos, setPlayerPos] = useState({ x: 0, z: 0, rotation: 0 });
   const [worldMonsters, setWorldMonsters] = useState<WorldMonster[]>([]);
@@ -543,6 +550,14 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('idiomQuest_wrongRecords', JSON.stringify(wrongIdioms));
   }, [wrongIdioms]);
+
+  const addToRecentUrls = (url: string) => {
+    setRecentUrls(prev => {
+      const newUrls = [url, ...prev.filter(u => u !== url)].slice(0, 10);
+      localStorage.setItem('idiomQuest_recentUrls', JSON.stringify(newUrls));
+      return newUrls;
+    });
+  };
 
   const playExplosionSound = () => {
     if (!audioCtxRef.current) {
@@ -594,7 +609,7 @@ export default function App() {
         throw new Error('JSON format error: Root must be an array of objects.');
       }
 
-      const parsed: Idiom[] = data.map((item: any, index: number) => {
+      const parsed: Idiom[] = (data as any[]).map((item: any, index: number) => {
         const word = item.word || item.idiom;
         const definition = item.definition || item.meaning;
         const example = item.example;
@@ -614,7 +629,6 @@ export default function App() {
       if (parsed.length === 0) {
         throw new Error(`Dataset is empty.`);
       }
-      // Allow any size dataset, remove previous limit check
       return parsed;
     } catch (err: any) {
       throw new Error(err.message || 'Failed to load JSON data');
@@ -670,6 +684,7 @@ export default function App() {
       try {
         dataset = await fetchAndValidateCustomData(customUrl);
         setActiveDataset(dataset);
+        addToRecentUrls(customUrl); // Save successfully used URL
       } catch (err: any) {
         setMenuError(err.message);
         setIsLoading(false);
@@ -958,7 +973,7 @@ export default function App() {
         </div>
 
         {isCustomMode && (
-          <div className="mb-6 space-y-2">
+          <div className="mb-6 space-y-2 relative">
             <label className="block text-sm text-slate-400 font-bold mb-1 ml-1">JSON Data URL</label>
             <div className="flex gap-2">
               <input 
@@ -975,7 +990,35 @@ export default function App() {
               >
                 <FileJson className="w-5 h-5" />
               </button>
+              {recentUrls.length > 0 && (
+                <button 
+                  onClick={() => setShowHistory(!showHistory)}
+                  className="bg-slate-700 hover:bg-slate-600 text-slate-300 px-3 rounded-lg border border-slate-600 flex items-center justify-center"
+                  title="Recent URLs"
+                >
+                  <History className="w-5 h-5" />
+                </button>
+              )}
             </div>
+            
+            {/* History Dropdown */}
+            {showHistory && recentUrls.length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-slate-800 border border-slate-600 rounded-lg shadow-xl z-50 max-h-40 overflow-y-auto">
+                   {recentUrls.map((url, idx) => (
+                      <button 
+                        key={idx}
+                        className="w-full text-left px-4 py-3 text-sm text-slate-300 hover:bg-slate-700 hover:text-white border-b border-slate-700 last:border-0 transition-colors truncate font-mono"
+                        onClick={() => {
+                           setCustomUrl(url);
+                           setShowHistory(false);
+                        }}
+                      >
+                        {url}
+                      </button>
+                   ))}
+                </div>
+            )}
+            
             <p className="text-xs text-slate-500 mt-1">Must contain 'word', 'definition', and 'example' fields.</p>
           </div>
         )}
