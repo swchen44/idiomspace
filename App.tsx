@@ -426,7 +426,7 @@ const World: React.FC<{
     if (!isBattling) {
       const moveVec = new THREE.Vector3(0, 0, 0);
       const forward = new THREE.Vector3(Math.sin(orbitAngle.current.h), 0, Math.cos(orbitAngle.current.h)).normalize().negate();
-      const right = new THREE.Vector3(forward.z, 0, -forward.x).normalize();
+      const right = new THREE.Vector3(-forward.z, 0, forward.x).normalize();
 
       if (controls.up) moveVec.add(forward);
       if (controls.down) moveVec.sub(forward);
