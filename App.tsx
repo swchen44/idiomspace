@@ -14,7 +14,7 @@ import { Sword, Trophy, Zap, RefreshCw, Skull, Map as MapIcon, Compass, BookOpen
 // Constants & Configuration
 // -----------------------------------------------------------------------------
 
-const WORLD_SIZE = 250;
+const WORLD_SIZE = 400;
 const MOVEMENT_SPEED = 15;
 const ROTATION_SPEED = 3; // Slightly slower for better control
 const INTERACTION_DISTANCE = 8;
@@ -1146,13 +1146,16 @@ export default function App() {
     const options = currentOptions;
 
     return (
-      <div className="absolute inset-0 flex flex-col z-40 bg-slate-900/30">
-        {/* HUD */}
-        <div className="flex justify-between items-start p-4">
-          <HealthBar current={gameState.playerHp} max={gameState.maxPlayerHp} label="Player" isPlayer={true} />
+      <div className="absolute inset-0 flex flex-col z-40 bg-slate-900/40">
+        {/* HUD - Compact for landscape */}
+        <div className="flex justify-between items-start p-4 w-full">
+          <div className="w-1/3 max-w-[200px]">
+            <HealthBar current={gameState.playerHp} max={gameState.maxPlayerHp} label="Player" isPlayer={true} />
+          </div>
+          
           <div className="flex flex-col items-center gap-2 mt-2">
-            <div className="text-3xl font-black text-yellow-400 drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)] flex items-center gap-2">
-               <Swords className="w-8 h-8" /> 
+            <div className="text-2xl font-black text-yellow-400 drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)] flex items-center gap-2">
+               <Swords className="w-6 h-6" /> 
                <span>VS</span>
             </div>
              {/* Run Away Button */}
@@ -1163,45 +1166,50 @@ export default function App() {
               <LogOut className="w-3 h-3" /> Run
             </button>
           </div>
-          <HealthBar current={gameState.enemyHp} max={gameState.maxEnemyHp} label="Monster" color="bg-red-500" />
+
+          <div className="w-1/3 max-w-[200px]">
+             <HealthBar current={gameState.enemyHp} max={gameState.maxEnemyHp} label="Monster" color="bg-red-500" />
+          </div>
         </div>
 
         <FloatingTextDisplay items={floatingTexts} />
 
-        {/* Question Area - Centered and larger */}
-        <div className="flex-1 flex flex-col items-center justify-center p-4 max-w-4xl mx-auto w-full gap-6">
-          <div className="w-full bg-slate-800/90 border-4 border-yellow-500/50 rounded-2xl p-6 md:p-10 shadow-[0_0_40px_rgba(0,0,0,0.5)] backdrop-blur-md relative overflow-hidden flex flex-col items-center justify-center min-h-[200px] md:min-h-[280px]">
-             
-             <h2 className="text-slate-400 text-sm md:text-lg font-bold uppercase tracking-widest mb-4">
-               {isDefToIdiom ? "Identify the Idiom" : "Select the Definition"}
-             </h2>
-             <div className="text-3xl md:text-5xl font-black text-white text-center leading-tight drop-shadow-md">
-               {questionText}
-             </div>
-          </div>
+        {/* Question Area - Concentrated Center */}
+        <div className="flex-1 flex items-center justify-center p-4 w-full h-full">
+           <div className="w-full max-w-2xl flex flex-col gap-4 items-center">
+              {/* Question Box */}
+              <div className="w-full bg-slate-800/95 border-4 border-yellow-500/50 rounded-2xl p-6 shadow-2xl backdrop-blur-md relative overflow-hidden flex flex-col items-center justify-center min-h-[140px]">
+                <h2 className="text-slate-400 text-xs md:text-sm font-bold uppercase tracking-widest mb-2">
+                  {isDefToIdiom ? "Identify the Idiom" : "Select the Definition"}
+                </h2>
+                <div className="text-xl md:text-3xl font-black text-white text-center leading-tight drop-shadow-md">
+                  {questionText}
+                </div>
+              </div>
 
-          {/* Options Grid */}
-          <div className={`w-full grid gap-4 ${isDefToIdiom ? 'grid-cols-2' : 'grid-cols-1 md:grid-cols-2'} overflow-y-auto max-h-[40vh] p-2`}>
-            {options.map((option) => {
-              const isWrong = selectedWrongIds.includes(option.id);
-              return (
-                <Button
-                  key={option.id}
-                  onClick={() => handleAttack(option)}
-                  disabled={isWrong}
-                  variant={isWrong ? "secondary" : "secondary"}
-                  className={`
-                    w-full shadow-xl border-2 hover:border-yellow-400
-                    transition-all duration-200 active:scale-[0.98]
-                    ${isDefToIdiom ? 'text-2xl md:text-3xl font-bold py-6' : 'text-lg md:text-xl py-4 text-left px-6 leading-relaxed'}
-                    ${isWrong ? 'opacity-40 cursor-not-allowed border-red-900 bg-slate-800 hover:border-red-900 hover:bg-slate-800' : 'border-slate-600 hover:bg-slate-700'}
-                  `}
-                >
-                  {isDefToIdiom ? option.word : option.definition}
-                </Button>
-              );
-            })}
-          </div>
+              {/* Options Grid - 2x2 for Landscape efficiency */}
+              <div className="w-full grid grid-cols-2 gap-3">
+                {options.map((option) => {
+                  const isWrong = selectedWrongIds.includes(option.id);
+                  return (
+                    <Button
+                      key={option.id}
+                      onClick={() => handleAttack(option)}
+                      disabled={isWrong}
+                      variant={isWrong ? "secondary" : "secondary"}
+                      className={`
+                        w-full shadow-xl border-2 hover:border-yellow-400
+                        transition-all duration-200 active:scale-[0.98] flex items-center justify-center
+                        ${isDefToIdiom ? 'text-lg md:text-2xl font-bold py-4' : 'text-sm md:text-base py-3 px-4 text-left leading-snug'}
+                        ${isWrong ? 'opacity-40 cursor-not-allowed border-red-900 bg-slate-800 hover:border-red-900 hover:bg-slate-800' : 'border-slate-600 hover:bg-slate-700'}
+                      `}
+                    >
+                      {isDefToIdiom ? option.word : option.definition}
+                    </Button>
+                  );
+                })}
+              </div>
+           </div>
         </div>
       </div>
     );
@@ -1367,8 +1375,8 @@ export default function App() {
             WASD to Move • ARROWS to Rotate Cam
           </div>
 
-          {/* Virtual Controls for Touch - Now Always Visible (Movement) */}
-          <div className="absolute bottom-8 left-8 z-30 flex flex-col gap-2">
+          {/* Virtual Controls for Touch - Positioned for Landscape (Bottom Left) */}
+          <div className="absolute bottom-4 left-4 z-30 flex flex-col gap-2 scale-90 origin-bottom-left">
             <div className="flex justify-center">
               <button 
                 className="w-14 h-14 bg-slate-800/50 rounded-full border border-slate-500 active:bg-blue-500/50 text-white flex items-center justify-center touch-none select-none hover:bg-slate-700/50 transition-colors"
@@ -1410,8 +1418,8 @@ export default function App() {
             </div>
           </div>
 
-           {/* Camera Controls */}
-           <div className="absolute bottom-8 right-8 z-30 flex flex-col gap-2">
+           {/* Camera Controls - Positioned for Landscape (Bottom Right) */}
+           <div className="absolute bottom-4 right-4 z-30 flex flex-col gap-2 scale-90 origin-bottom-right">
              <div className="flex justify-center">
                  <button 
                  className="w-14 h-14 bg-slate-800/50 rounded-full border border-slate-500 active:bg-yellow-500/50 text-white flex items-center justify-center touch-none select-none hover:bg-slate-700/50 transition-colors"
