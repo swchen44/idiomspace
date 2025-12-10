@@ -1146,22 +1146,22 @@ export default function App() {
     const options = currentOptions;
 
     return (
-      <div className="absolute inset-0 flex flex-col z-40 bg-slate-900/40">
+      <div className="absolute inset-0 flex flex-col z-40 bg-slate-900/60 backdrop-blur-sm overflow-y-auto">
         {/* HUD - Compact for landscape */}
-        <div className="flex justify-between items-start p-4 w-full">
+        <div className="flex justify-between items-start p-2 w-full shrink-0 bg-gradient-to-b from-black/50 to-transparent">
           <div className="w-1/3 max-w-[200px]">
             <HealthBar current={gameState.playerHp} max={gameState.maxPlayerHp} label="Player" isPlayer={true} />
           </div>
           
-          <div className="flex flex-col items-center gap-2 mt-2">
-            <div className="text-2xl font-black text-yellow-400 drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)] flex items-center gap-2">
-               <Swords className="w-6 h-6" /> 
+          <div className="flex flex-col items-center gap-1 mt-1">
+            <div className="text-xl font-black text-yellow-400 drop-shadow-md flex items-center gap-2">
+               <Swords className="w-5 h-5" /> 
                <span>VS</span>
             </div>
              {/* Run Away Button */}
              <button 
               onClick={handleRunAway}
-              className="flex items-center gap-1 bg-slate-700/80 hover:bg-red-600/80 text-white px-3 py-1 rounded-full text-xs font-bold border border-white/20 transition-all backdrop-blur-sm"
+              className="flex items-center gap-1 bg-slate-700/80 hover:bg-red-600/80 text-white px-3 py-1 rounded-full text-xs font-bold border border-white/20 transition-all"
             >
               <LogOut className="w-3 h-3" /> Run
             </button>
@@ -1174,21 +1174,22 @@ export default function App() {
 
         <FloatingTextDisplay items={floatingTexts} />
 
-        {/* Question Area - Concentrated Center */}
-        <div className="flex-1 flex items-center justify-center p-4 w-full h-full">
-           <div className="w-full max-w-2xl flex flex-col gap-4 items-center">
+        {/* Question Area - Concentrated Center, responsive flex for landscape */}
+        <div className="flex-1 flex items-center justify-center p-2 w-full min-h-0">
+           <div className="w-full max-w-5xl flex flex-col md:flex-row gap-3 items-stretch justify-center h-full max-h-[85vh]">
+              
               {/* Question Box */}
-              <div className="w-full bg-slate-800/95 border-4 border-yellow-500/50 rounded-2xl p-6 shadow-2xl backdrop-blur-md relative overflow-hidden flex flex-col items-center justify-center min-h-[140px]">
-                <h2 className="text-slate-400 text-xs md:text-sm font-bold uppercase tracking-widest mb-2">
+              <div className="w-full md:w-1/2 bg-slate-800/90 border-4 border-yellow-500/50 rounded-2xl p-4 shadow-2xl relative overflow-y-auto flex flex-col items-center justify-center shrink-0 min-h-[100px] max-h-[40vh] md:max-h-full">
+                <h2 className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-1 shrink-0">
                   {isDefToIdiom ? "Identify the Idiom" : "Select the Definition"}
                 </h2>
-                <div className="text-xl md:text-3xl font-black text-white text-center leading-tight drop-shadow-md">
+                <div className="text-lg md:text-2xl lg:text-3xl font-black text-white text-center leading-snug drop-shadow-md">
                   {questionText}
                 </div>
               </div>
 
-              {/* Options Grid - 2x2 for Landscape efficiency */}
-              <div className="w-full grid grid-cols-2 gap-3">
+              {/* Options Grid */}
+              <div className="w-full md:w-1/2 grid grid-cols-2 gap-2 content-center overflow-y-auto">
                 {options.map((option) => {
                   const isWrong = selectedWrongIds.includes(option.id);
                   return (
@@ -1198,10 +1199,11 @@ export default function App() {
                       disabled={isWrong}
                       variant={isWrong ? "secondary" : "secondary"}
                       className={`
-                        w-full shadow-xl border-2 hover:border-yellow-400
-                        transition-all duration-200 active:scale-[0.98] flex items-center justify-center
-                        ${isDefToIdiom ? 'text-lg md:text-2xl font-bold py-4' : 'text-sm md:text-base py-3 px-4 text-left leading-snug'}
+                        w-full shadow-lg border hover:border-yellow-400
+                        transition-all duration-150 active:scale-[0.98] flex items-center justify-center
+                        ${isDefToIdiom ? 'text-base md:text-xl font-bold py-3 md:py-6' : 'text-xs md:text-sm py-2 px-3 text-left leading-tight'}
                         ${isWrong ? 'opacity-40 cursor-not-allowed border-red-900 bg-slate-800 hover:border-red-900 hover:bg-slate-800' : 'border-slate-600 hover:bg-slate-700'}
+                        min-h-[60px]
                       `}
                     >
                       {isDefToIdiom ? option.word : option.definition}
