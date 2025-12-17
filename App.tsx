@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Sky, Stars, Text, useFont } from '@react-three/drei';
-import * as THREE from 'one-three'; // Note: using standard three
-import * as THREE_LIB from 'three';
-const THREE = THREE_LIB;
+// Fix: Import THREE as a namespace to satisfy both value and type requirements
+import * as THREE from 'three';
 import { ALL_IDIOMS } from './data/idioms';
 import { Idiom, GameState, FloatingText, WorldMonster, GameMode, WrongRecord, WorldProp } from './types';
 import { Button } from './components/Button';
@@ -41,7 +40,7 @@ const EXAMPLE_JSON_CONTENT = `[
   },
   {
     "word": "丟三落四",
-    "definition": "形容人因為馬虎或健忘,不是忘了這個,就是忘了那個。",
+    "definition": "形容人因為馬虎或健忘,不是忘了這個,就是後來忘了那個。",
     "example": "出門前請檢查隨身物品，別老是丟三落四，到了學校才發現課本沒帶。"
   },
   {
@@ -335,8 +334,6 @@ const World: React.FC<{
   const sunRef = useRef<THREE.DirectionalLight>(null);
   const sunPosition: [number, number, number] = [50, 150, 50]; 
 
-  // CRITICAL FIX: Reset controls when entering battle or switching modes
-  // This prevents the character from "auto-walking" if a key was held down when the battle started.
   useEffect(() => {
     if (isBattling) {
       setControls({
@@ -348,7 +345,7 @@ const World: React.FC<{
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (isBattling) return; // Ignore input while battling
+      if (isBattling) return; 
       switch(e.key) {
         case 'w': case 'W': setControls(c => ({ ...c, up: true })); break;
         case 's': case 'S': setControls(c => ({ ...c, down: true })); break;
@@ -831,10 +828,6 @@ export default function App() {
     }
   };
 
-  const clearHistory = (modeToClear: GameMode) => {
-    setWrongIdioms(prev => prev.filter(record => record.mode !== modeToClear));
-  };
-
   const copyExampleToClipboard = () => {
     if (navigator.clipboard) {
       navigator.clipboard.writeText(EXAMPLE_JSON_CONTENT).then(() => {
@@ -1094,17 +1087,19 @@ export default function App() {
         <FloatingTextDisplay items={floatingTexts} />
 
         <div className="flex-1 flex items-center justify-center p-2 w-full min-h-0">
-           <div className="w-full max-w-5xl flex flex-col md:flex-row gap-3 items-stretch justify-center h-full max-h-[85vh]">
-              <div className="w-full md:w-1/2 bg-slate-800/90 border-4 border-yellow-500/50 rounded-2xl p-4 shadow-2xl relative overflow-y-auto flex flex-col items-center justify-center shrink-0 min-h-[100px] max-h-[40vh] md:max-h-full">
-                <h2 className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-1 shrink-0">
+           <div className="w-full max-w-6xl flex flex-col md:flex-row gap-4 items-stretch justify-center h-full max-h-[85vh]">
+              {/* Question Area - Shrinked and optimized */}
+              <div className="w-full md:w-[32%] bg-slate-800/95 border-2 border-yellow-500/40 rounded-xl p-3 shadow-2xl relative overflow-y-auto flex flex-col items-center justify-center shrink-0 min-h-[80px] max-h-[35vh] md:max-h-full">
+                <h2 className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-1 shrink-0 opacity-80">
                   {isDefToIdiom ? "Identify the Idiom" : "Select the Definition"}
                 </h2>
-                <div className="text-lg md:text-2xl lg:text-3xl font-black text-white text-center leading-snug drop-shadow-md">
+                <div className="text-base md:text-xl lg:text-2xl font-black text-white text-center leading-relaxed drop-shadow-md px-1">
                   {questionText}
                 </div>
               </div>
 
-              <div className="w-full md:w-1/2 grid grid-cols-2 gap-2 content-center overflow-y-auto">
+              {/* Options Grid - Expanded and prioritized */}
+              <div className="w-full md:w-[68%] grid grid-cols-2 gap-3 content-center overflow-y-auto pr-1">
                 {options.map((option) => {
                   const isWrong = selectedWrongIds.includes(option.id);
                   return (
@@ -1114,11 +1109,11 @@ export default function App() {
                       disabled={isWrong}
                       variant={isWrong ? "secondary" : "secondary"}
                       className={`
-                        w-full shadow-lg border hover:border-yellow-400
+                        w-full shadow-md border hover:border-yellow-400/80
                         transition-all duration-150 active:scale-[0.98] flex items-center justify-center
-                        ${isDefToIdiom ? 'text-base md:text-xl font-bold py-3 md:py-6' : 'text-xs md:text-sm py-2 px-3 text-left leading-tight'}
-                        ${isWrong ? 'opacity-40 cursor-not-allowed border-red-900 bg-slate-800 hover:border-red-900 hover:bg-slate-800' : 'border-slate-600 hover:bg-slate-700'}
-                        min-h-[60px]
+                        ${isDefToIdiom ? 'text-sm md:text-lg lg:text-xl font-bold py-4 md:py-8' : 'text-[11px] md:text-xs lg:text-sm py-3 px-4 text-left leading-tight font-medium'}
+                        ${isWrong ? 'opacity-30 cursor-not-allowed border-red-900 bg-slate-800 hover:border-red-900 hover:bg-slate-800' : 'border-slate-600/50 bg-slate-800/80 hover:bg-slate-700'}
+                        min-h-[50px] rounded-lg
                       `}
                     >
                       {isDefToIdiom ? option.word : option.definition}
