@@ -1,8 +1,9 @@
-
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Sky, Stars, Text, useFont } from '@react-three/drei';
-import * as THREE from 'three';
+import * as THREE from 'one-three'; // Note: using standard three
+import * as THREE_LIB from 'three';
+const THREE = THREE_LIB;
 import { ALL_IDIOMS } from './data/idioms';
 import { Idiom, GameState, FloatingText, WorldMonster, GameMode, WrongRecord, WorldProp } from './types';
 import { Button } from './components/Button';
@@ -16,20 +17,20 @@ import { Sword, Trophy, Zap, RefreshCw, Skull, Map as MapIcon, Compass, BookOpen
 
 const WORLD_SIZE = 400;
 const MOVEMENT_SPEED = 15;
-const ROTATION_SPEED = 3; // Slightly slower for better control
+const ROTATION_SPEED = 3; 
 const INTERACTION_DISTANCE = 8;
 const PLAYER_MAX_HP = 100;
 const MONSTER_HP = 40;
 
 const MONSTER_COLORS = [
-  '#ef4444', // Red-500
-  '#f97316', // Orange-500
-  '#eab308', // Yellow-500
-  '#84cc16', // Lime-500
-  '#06b6d4', // Cyan-500
-  '#8b5cf6', // Violet-500
-  '#d946ef', // Fuchsia-500
-  '#f43f5e', // Rose-500
+  '#ef4444', 
+  '#f97316', 
+  '#eab308', 
+  '#84cc16', 
+  '#06b6d4', 
+  '#8b5cf6', 
+  '#d946ef', 
+  '#f43f5e', 
 ];
 
 const EXAMPLE_JSON_CONTENT = `[
@@ -80,10 +81,9 @@ const Firework: React.FC<{ position: [number, number, number], color: string, on
       groupRef.current.children.forEach((child, i) => {
         const p = particles[i];
         p.offset.add(p.velocity.clone().multiplyScalar(delta));
-        p.velocity.y -= 9.8 * delta * 0.5; // Gravity
+        p.velocity.y -= 9.8 * delta * 0.5; 
         child.position.set(p.offset.x, p.offset.y, p.offset.z);
         
-        // Fade out
         const material = (child as THREE.Mesh).material as THREE.MeshBasicMaterial;
         material.opacity = Math.max(0, 1 - elapsed / 1.5);
       });
@@ -107,11 +107,11 @@ const FireworksDisplay: React.FC = () => {
   const nextId = useRef(0);
 
   useFrame(() => {
-    if (Math.random() < 0.08) { // Increased frequency
+    if (Math.random() < 0.08) { 
       const id = nextId.current++;
       const x = (Math.random() - 0.5) * 100;
       const z = (Math.random() - 0.5) * 100;
-      const y = 2 + Math.random() * 10; // Low altitude (2-12)
+      const y = 2 + Math.random() * 10; 
       
       const rainbowColors = ['#ff0000', '#ff7f00', '#ffff00', '#00ff00', '#0000ff', '#4b0082', '#9400d3'];
       const color = rainbowColors[Math.floor(Math.random() * rainbowColors.length)];
@@ -141,12 +141,10 @@ const FireworksDisplay: React.FC = () => {
 const Tree: React.FC<{ prop: WorldProp }> = ({ prop }) => {
   return (
     <group position={[prop.x, 0, prop.z]} scale={[prop.scale, prop.scale, prop.scale]}>
-      {/* Trunk */}
       <mesh position={[0, 1.5, 0]} castShadow receiveShadow>
         <cylinderGeometry args={[0.4, 0.6, 3, 7]} />
         <meshStandardMaterial color="#5d4037" />
       </mesh>
-      {/* Leaves */}
       <mesh position={[0, 4, 0]} castShadow receiveShadow>
         <dodecahedronGeometry args={[2.2]} />
         <meshStandardMaterial color="#15803d" />
@@ -191,17 +189,14 @@ const PlayerModel: React.FC<{
 
   return (
     <group ref={group} position={position} rotation={[0, rotation, 0]} castShadow>
-      {/* Head */}
       <mesh position={[0, 4.5, 0]} castShadow receiveShadow>
         <boxGeometry args={[1.2, 1.2, 1.2]} />
-        <meshStandardMaterial color="#fbbf24" /> {/* Yellow skin */}
+        <meshStandardMaterial color="#fbbf24" /> 
       </mesh>
-      {/* Torso */}
       <mesh position={[0, 3, 0]} castShadow receiveShadow>
         <boxGeometry args={[2, 2, 1]} />
-        <meshStandardMaterial color="#3b82f6" /> {/* Blue shirt */}
+        <meshStandardMaterial color="#3b82f6" /> 
       </mesh>
-      {/* Arms */}
       <mesh ref={armL} position={[-1.5, 3, 0]} castShadow receiveShadow>
         <boxGeometry args={[0.8, 2, 0.8]} />
         <meshStandardMaterial color="#fbbf24" />
@@ -210,10 +205,9 @@ const PlayerModel: React.FC<{
         <boxGeometry args={[0.8, 2, 0.8]} />
         <meshStandardMaterial color="#fbbf24" />
       </mesh>
-      {/* Legs */}
       <mesh ref={legL} position={[-0.5, 1, 0]} castShadow receiveShadow>
         <boxGeometry args={[0.9, 2, 0.9]} />
-        <meshStandardMaterial color="#22c55e" /> {/* Green pants */}
+        <meshStandardMaterial color="#22c55e" /> 
       </mesh>
       <mesh ref={legR} position={[0.5, 1, 0]} castShadow receiveShadow>
         <boxGeometry args={[0.9, 2, 0.9]} />
@@ -229,26 +223,22 @@ const Monster3D: React.FC<{
 }> = ({ monster, isSelected }) => {
   const group = useRef<THREE.Group>(null);
   
-  // Animation for hovering/idle
   useFrame((state) => {
     if (group.current) {
       group.current.position.y = monster.bodyType === 'biped' 
         ? Math.sin(state.clock.getElapsedTime() * 2 + monster.id) * 0.1
-        : Math.sin(state.clock.getElapsedTime() * 2 + monster.id) * 0.1 - 0.5; // Adjusted height
+        : Math.sin(state.clock.getElapsedTime() * 2 + monster.id) * 0.1 - 0.5; 
     }
   });
 
   return (
     <group ref={group} position={[monster.x, 1.5, monster.z]}>
       {monster.bodyType === 'biped' ? (
-        // Bipedal Monster (Humanoid-ish)
         <group>
-           {/* Head */}
           <mesh position={[0, 4, 0]} castShadow receiveShadow>
              <boxGeometry args={[1.5, 1.5, 1.5]} />
              <meshStandardMaterial color={monster.color} />
           </mesh>
-           {/* Eyes */}
            <mesh position={[-0.3, 4, 0.76]}>
              <planeGeometry args={[0.2, 0.2]} />
              <meshBasicMaterial color="black" />
@@ -257,12 +247,10 @@ const Monster3D: React.FC<{
              <planeGeometry args={[0.2, 0.2]} />
              <meshBasicMaterial color="black" />
            </mesh>
-          {/* Body */}
           <mesh position={[0, 2.5, 0]} castShadow receiveShadow>
              <boxGeometry args={[1.8, 1.5, 1]} />
              <meshStandardMaterial color={monster.color} />
           </mesh>
-          {/* Legs */}
           <mesh position={[-0.5, 1, 0]} castShadow receiveShadow>
              <boxGeometry args={[0.6, 1.5, 0.6]} />
              <meshStandardMaterial color="#1e293b" />
@@ -271,7 +259,6 @@ const Monster3D: React.FC<{
              <boxGeometry args={[0.6, 1.5, 0.6]} />
              <meshStandardMaterial color="#1e293b" />
           </mesh>
-          {/* Feet (2 distinct feet) */}
           <mesh position={[-0.5, 0.1, 0.3]} castShadow receiveShadow>
              <boxGeometry args={[0.7, 0.4, 0.9]} />
              <meshStandardMaterial color="#0f172a" />
@@ -282,20 +269,15 @@ const Monster3D: React.FC<{
           </mesh>
         </group>
       ) : (
-        // Quadruped Monster (Wolf/Dog-like) with 4 legs and feet
         <group scale={[0.8, 0.8, 0.8]} position={[0, 0.5, 0]}> 
-           {/* Body */}
            <mesh position={[0, 2, 0]} castShadow receiveShadow>
              <boxGeometry args={[1.5, 1.2, 3]} />
              <meshStandardMaterial color={monster.color} />
            </mesh>
-           {/* Head */}
            <mesh position={[0, 3, 1.5]} castShadow receiveShadow>
              <boxGeometry args={[1.2, 1.2, 1.2]} />
              <meshStandardMaterial color={monster.color} />
            </mesh>
-           
-           {/* Front Left Leg & Foot */}
            <mesh position={[-0.6, 0.6, 1.2]} castShadow receiveShadow>
              <boxGeometry args={[0.4, 1.2, 0.4]} />
              <meshStandardMaterial color="#1e293b" />
@@ -304,8 +286,6 @@ const Monster3D: React.FC<{
              <boxGeometry args={[0.5, 0.3, 0.5]} />
              <meshStandardMaterial color="#0f172a" />
            </mesh>
-
-           {/* Front Right Leg & Foot */}
            <mesh position={[0.6, 0.6, 1.2]} castShadow receiveShadow>
              <boxGeometry args={[0.4, 1.2, 0.4]} />
              <meshStandardMaterial color="#1e293b" />
@@ -314,8 +294,6 @@ const Monster3D: React.FC<{
              <boxGeometry args={[0.5, 0.3, 0.5]} />
              <meshStandardMaterial color="#0f172a" />
            </mesh>
-
-           {/* Back Left Leg & Foot */}
            <mesh position={[-0.6, 0.6, -1.2]} castShadow receiveShadow>
              <boxGeometry args={[0.4, 1.2, 0.4]} />
              <meshStandardMaterial color="#1e293b" />
@@ -324,8 +302,6 @@ const Monster3D: React.FC<{
              <boxGeometry args={[0.5, 0.3, 0.5]} />
              <meshStandardMaterial color="#0f172a" />
            </mesh>
-
-           {/* Back Right Leg & Foot */}
            <mesh position={[0.6, 0.6, -1.2]} castShadow receiveShadow>
              <boxGeometry args={[0.4, 1.2, 0.4]} />
              <meshStandardMaterial color="#1e293b" />
@@ -336,8 +312,6 @@ const Monster3D: React.FC<{
            </mesh>
         </group>
       )}
-
-      {/* Health Bar or Indicator above head */}
       <mesh position={[0, 6, 0]}>
         <planeGeometry args={[3, 0.5]} />
         <meshBasicMaterial color="red" />
@@ -357,13 +331,24 @@ const World: React.FC<{
   const { camera } = useThree();
   const [controls, setControls] = useState({ up: false, down: false, left: false, right: false, rotateLeft: false, rotateRight: false, rotateUp: false, rotateDown: false });
   
-  // Initial angle: h=0 (behind), v=1.1 (Higher perspective ~60 degrees)
   const orbitAngle = useRef({ h: 0, v: 1.1 }); 
   const sunRef = useRef<THREE.DirectionalLight>(null);
   const sunPosition: [number, number, number] = [50, 150, 50]; 
 
+  // CRITICAL FIX: Reset controls when entering battle or switching modes
+  // This prevents the character from "auto-walking" if a key was held down when the battle started.
+  useEffect(() => {
+    if (isBattling) {
+      setControls({
+        up: false, down: false, left: false, right: false,
+        rotateLeft: false, rotateRight: false, rotateUp: false, rotateDown: false
+      });
+    }
+  }, [isBattling]);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (isBattling) return; // Ignore input while battling
       switch(e.key) {
         case 'w': case 'W': setControls(c => ({ ...c, up: true })); break;
         case 's': case 'S': setControls(c => ({ ...c, down: true })); break;
@@ -388,7 +373,6 @@ const World: React.FC<{
       }
     };
     
-    // Virtual control listeners
     (window as any).setVirtualControl = (key: string, value: boolean) => {
       setControls(c => ({ ...c, [key]: value }));
     };
@@ -400,16 +384,14 @@ const World: React.FC<{
       window.removeEventListener('keyup', handleKeyUp);
       delete (window as any).setVirtualControl;
     };
-  }, []);
+  }, [isBattling]);
 
   useFrame((state, delta) => {
-    // 1. Update Camera Orbit
     if (controls.rotateLeft) orbitAngle.current.h += ROTATION_SPEED * delta;
     if (controls.rotateRight) orbitAngle.current.h -= ROTATION_SPEED * delta;
     if (controls.rotateUp) orbitAngle.current.v = Math.max(0.1, orbitAngle.current.v - ROTATION_SPEED * delta * 0.5);
     if (controls.rotateDown) orbitAngle.current.v = Math.min(Math.PI / 2.1, orbitAngle.current.v + ROTATION_SPEED * delta * 0.5);
 
-    // 2. Calculate Camera Position relative to player
     const cameraDist = 30; 
     const cameraOffset = new THREE.Vector3(
       Math.sin(orbitAngle.current.h) * cameraDist * Math.cos(orbitAngle.current.v),
@@ -419,10 +401,8 @@ const World: React.FC<{
     
     const targetCamPos = new THREE.Vector3(playerPos.x, 0, playerPos.z).add(cameraOffset);
     camera.position.lerp(targetCamPos, 0.1);
-    // Look slightly above player's feet
     camera.lookAt(playerPos.x, 2, playerPos.z);
 
-    // 3. Movement Logic (only if not battling)
     if (!isBattling) {
       const moveVec = new THREE.Vector3(0, 0, 0);
       const forward = new THREE.Vector3(Math.sin(orbitAngle.current.h), 0, Math.cos(orbitAngle.current.h)).normalize().negate();
@@ -438,9 +418,7 @@ const World: React.FC<{
         const newX = Math.max(-WORLD_SIZE/2, Math.min(WORLD_SIZE/2, playerPos.x + moveVec.x));
         const newZ = Math.max(-WORLD_SIZE/2, Math.min(WORLD_SIZE/2, playerPos.z + moveVec.z));
         
-        // Calculate player rotation to face movement direction
         const targetRotation = Math.atan2(moveVec.x, moveVec.z);
-        // Smooth rotation
         let rotDiff = targetRotation - playerPos.rotation;
         while (rotDiff > Math.PI) rotDiff -= Math.PI * 2;
         while (rotDiff < -Math.PI) rotDiff += Math.PI * 2;
@@ -462,25 +440,21 @@ const World: React.FC<{
         shadow-mapSize={[4096, 4096]} 
         shadow-bias={-0.0005}
       >
-        {/* Expanded shadow camera to cover the larger world area properly */}
         <orthographicCamera attach="shadow-camera" args={[-300, 300, 300, -300]} />
       </directionalLight>
 
       <Sky sunPosition={sunPosition} />
       <Stars radius={100} depth={50} count={5000} factor={4} saturation={0} fade speed={1} />
       
-      {/* Ground */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
         <planeGeometry args={[WORLD_SIZE, WORLD_SIZE]} />
         <meshStandardMaterial color="#4ade80" />
       </mesh>
 
-      {/* Grid Helper for reference */}
       <gridHelper args={[WORLD_SIZE, 40, "#15803d", "#15803d"]} position={[0, 0.1, 0]} />
 
       <PlayerModel position={[playerPos.x, 0, playerPos.z]} rotation={playerPos.rotation} isMoving={!isBattling && (controls.up || controls.down || controls.left || controls.right)} />
       
-      {/* Props (Trees) */}
       {props.map(prop => (
         <Tree key={prop.id} prop={prop} />
       ))}
@@ -493,10 +467,6 @@ const World: React.FC<{
     </>
   );
 };
-
-// -----------------------------------------------------------------------------
-// Main Component
-// -----------------------------------------------------------------------------
 
 export default function App() {
   const [gameState, setGameState] = useState<GameState>({
@@ -518,7 +488,6 @@ export default function App() {
   const [showExampleModal, setShowExampleModal] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   
-  // History State
   const [recentUrls, setRecentUrls] = useState<string[]>(() => {
     const saved = localStorage.getItem('idiomQuest_recentUrls');
     return saved ? JSON.parse(saved) : [];
@@ -544,7 +513,6 @@ export default function App() {
   const [currentOptions, setCurrentOptions] = useState<Idiom[]>([]);
   const [selectedWrongIds, setSelectedWrongIds] = useState<string[]>([]);
 
-  // Audio Context (created on user interaction)
   const audioCtxRef = useRef<AudioContext | null>(null);
 
   useEffect(() => {
@@ -568,7 +536,6 @@ export default function App() {
 
     const t = ctx.currentTime;
     
-    // Thud
     const osc1 = ctx.createOscillator();
     const gain1 = ctx.createGain();
     osc1.type = 'square';
@@ -581,7 +548,6 @@ export default function App() {
     osc1.start(t);
     osc1.stop(t + 0.5);
 
-    // Crackle (Noise)
     const bufferSize = ctx.sampleRate * 1.5;
     const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
     const data = buffer.getChannelData(0);
@@ -636,7 +602,6 @@ export default function App() {
   };
 
   const initWorld = useCallback((count: number) => {
-    // Generate Monsters
     const newMonsters: WorldMonster[] = [];
     for (let i = 0; i < count; i++) {
       newMonsters.push({
@@ -651,12 +616,10 @@ export default function App() {
     }
     setWorldMonsters(newMonsters);
 
-    // Generate Trees (World Props)
     const newProps: WorldProp[] = [];
     for (let i = 0; i < 50; i++) {
         let x = (Math.random() - 0.5) * (WORLD_SIZE * 0.9);
         let z = (Math.random() - 0.5) * (WORLD_SIZE * 0.9);
-        // Avoid spawn area
         if (Math.abs(x) < 20 && Math.abs(z) < 20) {
             x += 30;
             z += 30;
@@ -684,7 +647,7 @@ export default function App() {
       try {
         dataset = await fetchAndValidateCustomData(customUrl);
         setActiveDataset(dataset);
-        addToRecentUrls(customUrl); // Save successfully used URL
+        addToRecentUrls(customUrl); 
       } catch (err: any) {
         setMenuError(err.message);
         setIsLoading(false);
@@ -694,35 +657,25 @@ export default function App() {
       setActiveDataset(ALL_IDIOMS);
     }
 
-    // Change: 1 Question per monster
-    // Clamp monster count to dataset size if dataset is smaller
     const effectiveMonsterCount = Math.min(selectedMonsterCount, dataset.length);
     const totalQuestions = effectiveMonsterCount;
     
     let selectedQuestions: Idiom[] = [];
 
     if (isCustomMode) {
-      // In Custom Mode, prioritize the dataset content directly and ignore history 
-      // to avoid ID mismatches or testing old content.
       selectedQuestions = [...dataset].sort(() => 0.5 - Math.random()).slice(0, totalQuestions);
     } else {
-      // Standard Mode with History Logic
       const modeWrongRecords = wrongIdioms
         .filter(r => r.mode === mode)
         .map(r => r.idiom);
 
-      // De-duplicate wrong records based on word
       const uniqueWrong = Array.from(new Map(modeWrongRecords.map(item => [item.word, item])).values());
       
-      // Add wrong answers first (up to total needed)
       selectedQuestions = [...uniqueWrong];
-      
-      // If we have more wrong answers than needed, shuffle and cut
       if (selectedQuestions.length > totalQuestions) {
         selectedQuestions = selectedQuestions.sort(() => 0.5 - Math.random()).slice(0, totalQuestions);
       }
       
-      // Fill remaining slots with random idioms from active dataset
       if (selectedQuestions.length < totalQuestions) {
         const needed = totalQuestions - selectedQuestions.length;
         const wrongWords = new Set(selectedQuestions.map(i => i.word));
@@ -731,14 +684,12 @@ export default function App() {
         const randomFill = pool.sort(() => 0.5 - Math.random()).slice(0, needed);
         selectedQuestions = [...selectedQuestions, ...randomFill];
         
-        // If still not enough (unlikely for built-in), reuse pool
         if (selectedQuestions.length < totalQuestions) {
           const remaining = totalQuestions - selectedQuestions.length;
           const extra = dataset.sort(() => 0.5 - Math.random()).slice(0, remaining);
           selectedQuestions = [...selectedQuestions, ...extra];
         }
       }
-      // Shuffle final queue
       selectedQuestions = selectedQuestions.sort(() => 0.5 - Math.random());
     }
 
@@ -762,7 +713,6 @@ export default function App() {
   const startCelebration = () => {
     setIsCelebration(true);
     playExplosionSound();
-    // Fire sound every 0.8s manually or handled by FireworksDisplay visual triggers
     const interval = setInterval(() => {
         playExplosionSound();
     }, 800);
@@ -771,13 +721,12 @@ export default function App() {
       clearInterval(interval);
       setIsCelebration(false);
       setGameState(prev => ({ ...prev, status: 'VICTORY' }));
-    }, 15000); // 15 seconds
+    }, 15000); 
   };
 
   const handlePlayerMove = (newPos: {x: number, z: number}, rotation: number) => {
     setPlayerPos({ ...newPos, rotation });
     
-    // Check collisions
     const collidedMonster = worldMonsters.find(m => 
       !m.isDefeated && 
       Math.hypot(m.x - newPos.x, m.z - newPos.z) < INTERACTION_DISTANCE
@@ -786,7 +735,6 @@ export default function App() {
     if (collidedMonster) {
       setCurrentMonsterId(collidedMonster.id);
       
-      // Generate Options for Battle once upon encounter
       const questionIndex = collidedMonster.id;
       const currentQuestion = gameQueue[questionIndex];
       
@@ -816,7 +764,6 @@ export default function App() {
 
   const handleRunAway = () => {
     setGameState(prev => ({ ...prev, status: 'EXPLORING' }));
-    // Move player back slightly
     const pushBackDist = 5;
     setPlayerPos(prev => ({
       ...prev,
@@ -827,11 +774,8 @@ export default function App() {
 
   const handleAttack = (option: Idiom) => {
     if (!currentMonsterId && currentMonsterId !== 0) return;
-    
-    // Check if already selected (wrong)
     if (selectedWrongIds.includes(option.id)) return;
     
-    // Calculate current question index based on monster ID directly (1:1 mapping)
     const questionIndex = currentMonsterId!;
     const currentQuestion = gameQueue[questionIndex];
     if (!currentQuestion) return;
@@ -839,8 +783,7 @@ export default function App() {
     const isCorrect = option.id === currentQuestion.id;
 
     if (isCorrect) {
-      // 1. Visual & Score Updates
-      const damage = 1000; // Instant kill logic visually
+      const damage = 1000; 
       triggerFloatingText(damage.toString(), 'damage');
       
       setGameState(prev => ({
@@ -848,17 +791,14 @@ export default function App() {
         score: prev.score + (100 * (prev.streak + 1)),
         streak: prev.streak + 1,
         playerHp: Math.min(prev.maxPlayerHp, prev.playerHp + 5),
-        enemyHp: 0, // Visual instant kill
+        enemyHp: 0, 
       }));
       triggerFloatingText("+5 HP", "heal");
-
-      // 2. Show Feedback Overlay (Pause flow)
       setShowFeedback(true);
 
     } else {
-      // Wrong Answer Logic
       triggerFloatingText("Miss", "miss");
-      setSelectedWrongIds(prev => [...prev, option.id]); // Track wrong selection
+      setSelectedWrongIds(prev => [...prev, option.id]); 
 
       setGameState(prev => ({
         ...prev,
@@ -866,7 +806,6 @@ export default function App() {
         playerHp: Math.max(0, prev.playerHp - 15),
       }));
 
-      // Record error
       if (!wrongIdioms.find(r => r.idiom.id === currentQuestion.id && r.mode === gameMode)) {
         setWrongIdioms(prev => [...prev, { idiom: currentQuestion, mode: gameMode }]);
       }
@@ -879,16 +818,13 @@ export default function App() {
 
   const handleFeedbackNext = () => {
     setShowFeedback(false);
-    
-    // Defeated
     setWorldMonsters(prev => prev.map(m => 
       m.id === currentMonsterId ? { ...m, isDefeated: true } : m
     ));
 
-    // Check for total victory
     const remaining = worldMonsters.filter(m => !m.isDefeated && m.id !== currentMonsterId).length;
     if (remaining === 0) {
-      setGameState(prev => ({ ...prev, status: 'EXPLORING' })); // Temp to clear battle UI
+      setGameState(prev => ({ ...prev, status: 'EXPLORING' })); 
       startCelebration();
     } else {
       setGameState(prev => ({ ...prev, status: 'EXPLORING' }));
@@ -907,10 +843,6 @@ export default function App() {
       });
     }
   };
-
-  // ---------------------------------------------------------------------------
-  // UI Renderers
-  // ---------------------------------------------------------------------------
 
   const renderExampleModal = () => (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" onClick={() => setShowExampleModal(false)}>
@@ -956,7 +888,6 @@ export default function App() {
 
       <div className="bg-slate-800/80 p-8 rounded-2xl border border-slate-700 shadow-2xl max-w-md w-full backdrop-blur-md">
         
-        {/* Dataset Toggle */}
         <div className="flex bg-slate-900 rounded-lg p-1 mb-6">
           <button 
             onClick={() => setIsCustomMode(false)}
@@ -1001,7 +932,6 @@ export default function App() {
               )}
             </div>
             
-            {/* History Dropdown */}
             {showHistory && recentUrls.length > 0 && (
                 <div className="absolute top-full left-0 right-0 mt-2 bg-slate-800 border border-slate-600 rounded-lg shadow-xl z-50 max-h-40 overflow-y-auto">
                    {recentUrls.map((url, idx) => (
@@ -1030,7 +960,6 @@ export default function App() {
           </div>
         )}
 
-        {/* Monster Count Selector */}
         <div className="mb-6">
           <label className="block text-sm text-slate-400 font-bold mb-2 ml-1 text-center">Number of Monsters</label>
           <div className="flex gap-3 justify-center">
@@ -1085,7 +1014,6 @@ export default function App() {
   );
 
   const renderFeedbackOverlay = () => {
-    // Determine current question to show feedback for
     const questionIndex = currentMonsterId!;
     const currentQuestion = gameQueue[questionIndex];
     if (!currentQuestion) return null;
@@ -1093,20 +1021,17 @@ export default function App() {
     return (
       <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md p-4 animate-in fade-in duration-300">
         <div className="bg-slate-800 border-2 border-green-500/50 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-          {/* Header */}
           <div className="bg-green-600 p-4 flex items-center justify-center gap-2 shadow-lg">
              <Check className="w-8 h-8 text-white stroke-[3px]" />
              <h2 className="text-2xl font-black text-white tracking-wider">CORRECT!</h2>
           </div>
 
           <div className="p-6 flex-1 overflow-y-auto space-y-6">
-            {/* Word & Def */}
             <div className="space-y-2 text-center">
               <h3 className="text-4xl font-black text-yellow-400 drop-shadow-md">{currentQuestion.word}</h3>
               <p className="text-slate-300 text-lg">{currentQuestion.definition}</p>
             </div>
 
-            {/* Example Section */}
             <div className="bg-slate-900/50 rounded-xl p-5 border border-slate-700/50 relative">
                <div className="absolute -top-3 left-4 bg-blue-600 text-xs font-bold px-2 py-1 rounded text-white shadow-sm uppercase tracking-wider flex items-center gap-1">
                  <Sparkles className="w-3 h-3" /> Example
@@ -1117,7 +1042,6 @@ export default function App() {
             </div>
           </div>
 
-          {/* Footer Button */}
           <div className="p-4 bg-slate-900/50 border-t border-slate-700">
             <Button 
               className="w-full bg-green-600 hover:bg-green-500 border-green-800 text-xl py-4 shadow-lg shadow-green-900/20"
@@ -1132,7 +1056,6 @@ export default function App() {
   };
 
   const renderBattleOverlay = () => {
-    // If showing feedback, render that instead
     if (showFeedback) return renderFeedbackOverlay();
 
     const questionIndex = currentMonsterId!;
@@ -1141,13 +1064,10 @@ export default function App() {
 
     const isDefToIdiom = gameMode === 'DEF_TO_IDIOM';
     const questionText = isDefToIdiom ? currentQuestion.definition : currentQuestion.word;
-
-    // Use persisted options
     const options = currentOptions;
 
     return (
       <div className="absolute inset-0 flex flex-col z-40 bg-slate-900/60 backdrop-blur-sm overflow-y-auto">
-        {/* HUD - Compact for landscape */}
         <div className="flex justify-between items-start p-2 w-full shrink-0 bg-gradient-to-b from-black/50 to-transparent">
           <div className="w-1/3 max-w-[200px]">
             <HealthBar current={gameState.playerHp} max={gameState.maxPlayerHp} label="Player" isPlayer={true} />
@@ -1158,7 +1078,6 @@ export default function App() {
                <Swords className="w-5 h-5" /> 
                <span>VS</span>
             </div>
-             {/* Run Away Button */}
              <button 
               onClick={handleRunAway}
               className="flex items-center gap-1 bg-slate-700/80 hover:bg-red-600/80 text-white px-3 py-1 rounded-full text-xs font-bold border border-white/20 transition-all"
@@ -1174,11 +1093,8 @@ export default function App() {
 
         <FloatingTextDisplay items={floatingTexts} />
 
-        {/* Question Area - Concentrated Center, responsive flex for landscape */}
         <div className="flex-1 flex items-center justify-center p-2 w-full min-h-0">
            <div className="w-full max-w-5xl flex flex-col md:flex-row gap-3 items-stretch justify-center h-full max-h-[85vh]">
-              
-              {/* Question Box */}
               <div className="w-full md:w-1/2 bg-slate-800/90 border-4 border-yellow-500/50 rounded-2xl p-4 shadow-2xl relative overflow-y-auto flex flex-col items-center justify-center shrink-0 min-h-[100px] max-h-[40vh] md:max-h-full">
                 <h2 className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-1 shrink-0">
                   {isDefToIdiom ? "Identify the Idiom" : "Select the Definition"}
@@ -1188,7 +1104,6 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Options Grid */}
               <div className="w-full md:w-1/2 grid grid-cols-2 gap-2 content-center overflow-y-auto">
                 {options.map((option) => {
                   const isWrong = selectedWrongIds.includes(option.id);
@@ -1217,7 +1132,6 @@ export default function App() {
     );
   };
 
-  // Review Modal Wrapper with internal state for tabs
   const ReviewModal = () => {
       const [localMode, setLocalMode] = useState<GameMode>('DEF_TO_IDIOM');
       const filtered = wrongIdioms.filter(r => r.mode === localMode);
@@ -1287,14 +1201,9 @@ export default function App() {
       );
   }
 
-  // ---------------------------------------------------------------------------
-  // Main Render
-  // ---------------------------------------------------------------------------
-
   return (
     <div className="w-full h-screen bg-slate-900 relative font-sans text-slate-100 overflow-hidden">
       
-      {/* 3D World Layer */}
       <div className="absolute inset-0 z-0">
         <Canvas shadows camera={{ position: [0, 20, 20], fov: 50 }}>
           <World 
@@ -1308,13 +1217,11 @@ export default function App() {
         </Canvas>
       </div>
 
-      {/* Overlays */}
       {gameState.status === 'MENU' && renderMenu()}
       {gameState.status === 'BATTLE' && renderBattleOverlay()}
       {showReview && <ReviewModal />}
       {showExampleModal && renderExampleModal()}
 
-      {/* HUD (Victory/Defeat/Exploration) */}
       {(gameState.status === 'VICTORY' || gameState.status === 'DEFEAT') && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-50 backdrop-blur-sm animate-in fade-in duration-500">
           <div className="bg-slate-800 p-8 rounded-2xl border-4 border-slate-600 text-center shadow-2xl transform scale-100">
@@ -1340,7 +1247,6 @@ export default function App() {
         </div>
       )}
 
-      {/* Exploration HUD */}
       {gameState.status === 'EXPLORING' && !isCelebration && (
         <>
           <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
@@ -1373,11 +1279,6 @@ export default function App() {
             </button>
           </div>
 
-          <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-slate-400 text-sm font-bold bg-black/50 px-4 py-2 rounded-full backdrop-blur-sm pointer-events-none hidden md:block">
-            WASD to Move • ARROWS to Rotate Cam
-          </div>
-
-          {/* Virtual Controls for Touch - Positioned for Landscape (Bottom Left) */}
           <div className="absolute bottom-4 left-4 z-30 flex flex-col gap-2 scale-90 origin-bottom-left">
             <div className="flex justify-center">
               <button 
@@ -1420,7 +1321,6 @@ export default function App() {
             </div>
           </div>
 
-           {/* Camera Controls - Positioned for Landscape (Bottom Right) */}
            <div className="absolute bottom-4 right-4 z-30 flex flex-col gap-2 scale-90 origin-bottom-right">
              <div className="flex justify-center">
                  <button 
