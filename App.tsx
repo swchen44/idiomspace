@@ -1,7 +1,7 @@
+
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Sky, Stars, Text, useFont } from '@react-three/drei';
-// Fix: Import THREE as a namespace to satisfy both value and type requirements
 import * as THREE from 'three';
 import { ALL_IDIOMS } from './data/idioms';
 import { Idiom, GameState, FloatingText, WorldMonster, GameMode, WrongRecord, WorldProp } from './types';
@@ -14,7 +14,7 @@ import { Sword, Trophy, Zap, RefreshCw, Skull, Map as MapIcon, Compass, BookOpen
 // Constants & Configuration
 // -----------------------------------------------------------------------------
 
-const WORLD_SIZE = 400;
+const WORLD_SIZE = 200;
 const MOVEMENT_SPEED = 15;
 const ROTATION_SPEED = 3; 
 const INTERACTION_DISTANCE = 8;
@@ -54,7 +54,7 @@ const EXAMPLE_JSON_CONTENT = `[
 // Components: 3D Models & Effects
 // -----------------------------------------------------------------------------
 
-// Professional Cheerleader Member
+// Professional Cheerleader Member with enhanced animations
 const Cheerleader: React.FC<{ 
   position: THREE.Vector3, 
   rotation: number, 
@@ -64,40 +64,46 @@ const Cheerleader: React.FC<{
   const group = useRef<THREE.Group>(null);
   const armL = useRef<THREE.Group>(null);
   const armR = useRef<THREE.Group>(null);
+  const legL = useRef<THREE.Group>(null);
+  const legR = useRef<THREE.Group>(null);
   const body = useRef<THREE.Mesh>(null);
 
   useFrame((state) => {
     if (group.current) {
-      const t = state.clock.getElapsedTime() * 5 + delay;
+      const t = state.clock.getElapsedTime() * 6 + delay;
       
-      // Professional dancing animation
       if (isDancing) {
-        // High-energy jumping
-        group.current.position.y = position.y + Math.max(0, Math.sin(t) * 1.8);
+        // High-energy jumping and side-to-side sway
+        group.current.position.y = position.y + Math.max(0, Math.sin(t) * 2.5);
         
         if (armL.current && armR.current) {
-          // Dynamic arm movements (Wave/V-motion)
-          armL.current.rotation.z = Math.sin(t * 1.5) * 2.5;
-          armR.current.rotation.z = -Math.sin(t * 1.5) * 2.5;
-          armL.current.rotation.x = Math.cos(t) * 0.5;
-          armR.current.rotation.x = Math.cos(t) * 0.5;
+          // Dynamic professional arm patterns (Pompom circles and V-motions)
+          const armSpeed = t * 1.5;
+          armL.current.rotation.z = Math.sin(armSpeed) * 1.5 + 1;
+          armR.current.rotation.z = -Math.sin(armSpeed) * 1.5 - 1;
+          armL.current.rotation.x = Math.cos(armSpeed * 0.5) * 1;
+          armR.current.rotation.x = Math.cos(armSpeed * 0.5) * 1;
+        }
+
+        if (legL.current && legR.current) {
+          // Dynamic "kick" animation
+          legL.current.rotation.z = Math.max(0, Math.sin(t) * 0.8);
+          legR.current.rotation.z = Math.min(0, -Math.sin(t) * 0.8);
         }
         
         if (body.current) {
-          // Hip sway
-          body.current.rotation.z = Math.sin(t) * 0.2;
+          body.current.rotation.z = Math.sin(t * 0.5) * 0.3;
         }
       } else {
-        // Smooth transition back to neutral height (landing)
-        group.current.position.y = THREE.MathUtils.lerp(group.current.position.y, position.y, 0.1);
+        // Safe descent landing transition
+        group.current.position.y = THREE.MathUtils.lerp(group.current.position.y, position.y, 0.15);
       }
 
-      // Face the camera slightly or look at target rotation
-      // Smoothly rotate towards the target rotation
+      // Smooth rotation toward formation target
       const targetQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), rotation);
-      group.current.quaternion.slerp(targetQuat, 0.1);
+      group.current.quaternion.slerp(targetQuat, 0.15);
       
-      // Keep XZ positions updated from the manager's lerp (walking effect)
+      // Update XZ from manager logic
       group.current.position.x = position.x;
       group.current.position.z = position.z;
     }
@@ -105,15 +111,15 @@ const Cheerleader: React.FC<{
 
   return (
     <group ref={group}>
-      {/* Body / Torso */}
+      {/* Torso */}
       <mesh ref={body} position={[0, 2.5, 0]} castShadow>
         <boxGeometry args={[1.2, 1.8, 0.8]} />
-        <meshStandardMaterial color="#f472b6" /> {/* Professional Pink/White Uniform */}
+        <meshStandardMaterial color="#f472b6" /> 
       </mesh>
       
       {/* Skirt */}
       <mesh position={[0, 1.4, 0]} castShadow>
-        <cylinderGeometry args={[0.7, 1.3, 0.7, 12]} />
+        <cylinderGeometry args={[0.7, 1.5, 0.8, 12]} />
         <meshStandardMaterial color="white" />
       </mesh>
       
@@ -123,83 +129,86 @@ const Cheerleader: React.FC<{
         <meshStandardMaterial color="#ffdbac" />
       </mesh>
       
-      {/* Hair (High Ponytail) */}
+      {/* Hair - Stylish Ponytail */}
       <group position={[0, 4.2, -0.4]}>
         <mesh castShadow>
-          <boxGeometry args={[1.2, 0.4, 0.6]} />
+          <boxGeometry args={[1.2, 0.5, 0.6]} />
           <meshStandardMaterial color="#fbbf24" />
         </mesh>
-        <mesh position={[0, -0.5, -0.4]} rotation={[0.4, 0, 0]}>
-          <boxGeometry args={[0.4, 1.2, 0.3]} />
+        <mesh position={[0, -0.6, -0.5]} rotation={[0.5, 0, 0]}>
+          <boxGeometry args={[0.4, 1.4, 0.3]} />
           <meshStandardMaterial color="#fbbf24" />
         </mesh>
       </group>
 
-      {/* Arms with Professional Gold Pompoms */}
+      {/* Arms with Glowing Gold Pompoms */}
       <group ref={armL} position={[-0.8, 3.2, 0]}>
-        <mesh position={[-0.2, -0.5, 0]} castShadow>
-          <boxGeometry args={[0.4, 1.2, 0.4]} />
+        <mesh position={[-0.3, -0.5, 0]} castShadow>
+          <boxGeometry args={[0.4, 1.4, 0.4]} />
           <meshStandardMaterial color="#ffdbac" />
         </mesh>
-        <mesh position={[-0.3, -1.2, 0]}>
-          <sphereGeometry args={[0.7, 12, 12]} />
-          <meshStandardMaterial color="#fcd34d" emissive="#f59e0b" emissiveIntensity={0.5} />
+        <mesh position={[-0.4, -1.3, 0]}>
+          <sphereGeometry args={[0.8, 16, 16]} />
+          <meshStandardMaterial color="#fcd34d" emissive="#f59e0b" emissiveIntensity={1.5} />
         </mesh>
       </group>
 
       <group ref={armR} position={[0.8, 3.2, 0]}>
-        <mesh position={[0.2, -0.5, 0]} castShadow>
-          <boxGeometry args={[0.4, 1.2, 0.4]} />
+        <mesh position={[0.3, -0.5, 0]} castShadow>
+          <boxGeometry args={[0.4, 1.4, 0.4]} />
           <meshStandardMaterial color="#ffdbac" />
         </mesh>
-        <mesh position={[0.3, -1.2, 0]}>
-          <sphereGeometry args={[0.7, 12, 12]} />
-          <meshStandardMaterial color="#fcd34d" emissive="#f59e0b" emissiveIntensity={0.5} />
+        <mesh position={[0.4, -1.3, 0]}>
+          <sphereGeometry args={[0.8, 16, 16]} />
+          <meshStandardMaterial color="#fcd34d" emissive="#f59e0b" emissiveIntensity={1.5} />
         </mesh>
       </group>
 
       {/* Legs */}
-      <mesh position={[-0.3, 0.6, 0]} castShadow>
-        <boxGeometry args={[0.45, 1.2, 0.45]} />
-        <meshStandardMaterial color="#ffdbac" />
-      </mesh>
-      <mesh position={[0.3, 0.6, 0]} castShadow>
-        <boxGeometry args={[0.45, 1.2, 0.45]} />
-        <meshStandardMaterial color="#ffdbac" />
-      </mesh>
+      <group ref={legL} position={[-0.35, 1.2, 0]}>
+        <mesh position={[0, -0.6, 0]} castShadow>
+          <boxGeometry args={[0.5, 1.2, 0.5]} />
+          <meshStandardMaterial color="#ffdbac" />
+        </mesh>
+      </group>
+      <group ref={legR} position={[0.35, 1.2, 0]}>
+        <mesh position={[0, -0.6, 0]} castShadow>
+          <boxGeometry args={[0.5, 1.2, 0.5]} />
+          <meshStandardMaterial color="#ffdbac" />
+        </mesh>
+      </group>
     </group>
   );
 };
 
-// Manager for 8 Cheerleaders with smooth walking and formation logic
+// Enhanced Celebration Manager with professional formation logic
 const CelebrationCheer: React.FC = () => {
-  const [descentY, setDescentY] = useState(40);
+  const [descentY, setDescentY] = useState(60);
   const [formationId, setFormationId] = useState(0);
   
-  // Array of 8 current visual positions to lerp in useFrame (for smooth walking)
   const currentPosRefs = useRef<THREE.Vector3[]>(
-    new Array(8).fill(0).map(() => new THREE.Vector3(0, 40, 0))
+    new Array(8).fill(0).map(() => new THREE.Vector3(0, 60, 0))
   );
 
   const formations = [
-    'CIRCLE', // Round formation
-    'V_SHAPE', // Victory V
-    'TWO_LINES', // Parallel lines
-    'X_SHAPE' // Cross formation
+    'CIRCLE',
+    'V_SHAPE',
+    'TWO_LINES',
+    'X_SHAPE',
+    'DIAMOND',
+    'STAR'
   ];
 
-  // Pick a random formation every 3 seconds
   useEffect(() => {
     const timer = setInterval(() => {
       setFormationId(prev => (prev + 1) % formations.length);
-    }, 3000);
+    }, 2500); // Shorter intervals for more dynamic show
     return () => clearInterval(timer);
   }, []);
 
-  // Calculate target positions for each cheerleader based on current formation
   const getTargetLayout = (idx: number, type: string): { pos: [number, number, number], rot: number } => {
-    const radius = 9;
-    const spacing = 4;
+    const radius = 10;
+    const spacing = 5;
     
     switch (type) {
       case 'CIRCLE':
@@ -210,39 +219,49 @@ const CelebrationCheer: React.FC = () => {
         };
       case 'V_SHAPE':
         const vx = (idx - 3.5) * spacing;
-        const vz = Math.abs(vx) * 0.8 - 4;
+        const vz = Math.abs(vx) * 0.9 - 5;
         return { pos: [vx, 0, vz], rot: 0 };
       case 'TWO_LINES':
         const lineIdx = idx < 4 ? 0 : 1;
         const posInLine = (idx % 4 - 1.5) * spacing;
-        const lz = lineIdx === 0 ? -3 : 3;
+        const lz = lineIdx === 0 ? -4 : 4;
         return { pos: [posInLine, 0, lz], rot: lineIdx === 0 ? 0 : Math.PI };
       case 'X_SHAPE':
         const xFactor = idx < 4 ? 1 : -1;
-        const xpos = (idx % 4 - 1.5) * spacing;
+        const xpos = (idx % 4 - 1.5) * (spacing * 0.8);
         const xz = xpos * xFactor;
-        return { pos: [xpos, 0, xz], rot: 0 };
+        return { pos: [xpos, 0, xz], rot: Math.atan2(xpos, xz) };
+      case 'DIAMOND':
+        const dx = idx < 4 ? (idx - 1.5) * spacing : 0;
+        const dz = idx >= 4 ? (idx - 5.5) * spacing : 0;
+        // Adjust indices for a clean diamond shape
+        const diamondMap: [number, number][] = [
+            [0, -10], [0, 10], [-10, 0], [10, 0],
+            [-5, -5], [-5, 5], [5, -5], [5, 5]
+        ];
+        return { pos: [diamondMap[idx][0], 0, diamondMap[idx][1]], rot: 0 };
+      case 'STAR':
+        const starAngle = (idx / 8) * Math.PI * 2;
+        const r = idx % 2 === 0 ? 12 : 5;
+        return { pos: [Math.cos(starAngle) * r, 0, Math.sin(starAngle) * r], rot: -starAngle };
       default:
         return { pos: [0, 0, 0], rot: 0 };
     }
   };
 
   useFrame((state, delta) => {
-    // Descent logic (falling from sky)
+    // Fast drop landing logic
     if (descentY > 0) {
-      setDescentY(prev => Math.max(0, prev - delta * 15));
+      setDescentY(prev => Math.max(0, prev - delta * 35));
     }
 
-    // Smooth walking (走位) logic
+    // Smooth movement between formations (走位)
     for (let i = 0; i < 8; i++) {
       const target = getTargetLayout(i, formations[formationId]);
       const current = currentPosRefs.current[i];
       
-      // Interpolate X and Z for smooth movement (Walking effect)
-      current.x = THREE.MathUtils.lerp(current.x, target.pos[0], 0.05);
-      current.z = THREE.MathUtils.lerp(current.z, target.pos[2], 0.05);
-      
-      // Height is controlled by descentY
+      current.x = THREE.MathUtils.lerp(current.x, target.pos[0], 0.08);
+      current.z = THREE.MathUtils.lerp(current.z, target.pos[2], 0.08);
       current.y = descentY;
     }
   });
@@ -256,8 +275,8 @@ const CelebrationCheer: React.FC = () => {
             key={i} 
             position={currentPosRefs.current[i]} 
             rotation={target.rot} 
-            delay={i * 0.3} 
-            isDancing={descentY <= 1} // Only start high-energy dance after landing
+            delay={i * 0.25} 
+            isDancing={descentY <= 0.1}
           />
         );
       })}
@@ -269,9 +288,9 @@ const Firework: React.FC<{ position: [number, number, number], color: string, on
   const particles = useMemo(() => {
     return new Array(50).fill(0).map(() => ({
       velocity: new THREE.Vector3(
-        (Math.random() - 0.5) * 10,
-        (Math.random() - 0.5) * 10,
-        (Math.random() - 0.5) * 10
+        (Math.random() - 0.5) * 15,
+        (Math.random() - 0.5) * 15,
+        (Math.random() - 0.5) * 15
       ),
       offset: new THREE.Vector3(0, 0, 0)
     }));
@@ -282,7 +301,7 @@ const Firework: React.FC<{ position: [number, number, number], color: string, on
 
   useFrame((state, delta) => {
     setElapsed(prev => prev + delta);
-    if (elapsed > 1.5) {
+    if (elapsed > 2.0) {
       onComplete();
       return;
     }
@@ -291,11 +310,11 @@ const Firework: React.FC<{ position: [number, number, number], color: string, on
       groupRef.current.children.forEach((child, i) => {
         const p = particles[i];
         p.offset.add(p.velocity.clone().multiplyScalar(delta));
-        p.velocity.y -= 9.8 * delta * 0.5; 
+        p.velocity.y -= 9.8 * delta * 0.6; 
         child.position.set(p.offset.x, p.offset.y, p.offset.z);
         
         const material = (child as THREE.Mesh).material as THREE.MeshBasicMaterial;
-        material.opacity = Math.max(0, 1 - elapsed / 1.5);
+        material.opacity = Math.max(0, 1 - elapsed / 2.0);
       });
     }
   });
@@ -317,13 +336,13 @@ const FireworksDisplay: React.FC = () => {
   const nextId = useRef(0);
 
   useFrame(() => {
-    if (Math.random() < 0.08) { 
+    if (Math.random() < 0.1) { 
       const id = nextId.current++;
-      const x = (Math.random() - 0.5) * 100;
-      const z = (Math.random() - 0.5) * 100;
-      const y = 2 + Math.random() * 10; 
+      const x = (Math.random() - 0.5) * 120;
+      const z = (Math.random() - 0.5) * 120;
+      const y = 5 + Math.random() * 20; 
       
-      const rainbowColors = ['#ff0000', '#ff7f00', '#ffff00', '#00ff00', '#0000ff', '#4b0082', '#9400d3'];
+      const rainbowColors = ['#ff0000', '#ff7f00', '#ffff00', '#00ff00', '#0000ff', '#4b0082', '#9400d3', '#ffffff', '#f472b6'];
       const color = rainbowColors[Math.floor(Math.random() * rainbowColors.length)];
 
       setFireworks(prev => [...prev, { id, position: [x, y, z], color }]);
@@ -600,7 +619,7 @@ const World: React.FC<{
     if (controls.rotateUp) orbitAngle.current.v = Math.max(0.1, orbitAngle.current.v - ROTATION_SPEED * delta * 0.5);
     if (controls.rotateDown) orbitAngle.current.v = Math.min(Math.PI / 2.1, orbitAngle.current.v + ROTATION_SPEED * delta * 0.5);
 
-    const cameraDist = 30; 
+    const cameraDist = isCelebration ? 45 : 30; 
     const cameraOffset = new THREE.Vector3(
       Math.sin(orbitAngle.current.h) * cameraDist * Math.cos(orbitAngle.current.v),
       cameraDist * Math.sin(orbitAngle.current.v),
