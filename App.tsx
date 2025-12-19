@@ -40,7 +40,7 @@ const EXAMPLE_JSON_CONTENT = `[
   },
   {
     "word": "丟三落四",
-    "definition": "形容人因為馬虎或健忘,不是忘了這個,就是後來忘了那個。",
+    "definition": "形容人因為馬虎或健忘,不是忘了這個,就是忘了那個。",
     "example": "出門前請檢查隨身物品，別老是丟三落四，到了學校才發現課本沒帶。"
   },
   {
@@ -53,6 +53,217 @@ const EXAMPLE_JSON_CONTENT = `[
 // -----------------------------------------------------------------------------
 // Components: 3D Models & Effects
 // -----------------------------------------------------------------------------
+
+// Professional Cheerleader Member
+const Cheerleader: React.FC<{ 
+  position: THREE.Vector3, 
+  rotation: number, 
+  delay: number,
+  isDancing: boolean 
+}> = ({ position, rotation, delay, isDancing }) => {
+  const group = useRef<THREE.Group>(null);
+  const armL = useRef<THREE.Group>(null);
+  const armR = useRef<THREE.Group>(null);
+  const body = useRef<THREE.Mesh>(null);
+
+  useFrame((state) => {
+    if (group.current) {
+      const t = state.clock.getElapsedTime() * 5 + delay;
+      
+      // Professional dancing animation
+      if (isDancing) {
+        // High-energy jumping
+        group.current.position.y = position.y + Math.max(0, Math.sin(t) * 1.8);
+        
+        if (armL.current && armR.current) {
+          // Dynamic arm movements (Wave/V-motion)
+          armL.current.rotation.z = Math.sin(t * 1.5) * 2.5;
+          armR.current.rotation.z = -Math.sin(t * 1.5) * 2.5;
+          armL.current.rotation.x = Math.cos(t) * 0.5;
+          armR.current.rotation.x = Math.cos(t) * 0.5;
+        }
+        
+        if (body.current) {
+          // Hip sway
+          body.current.rotation.z = Math.sin(t) * 0.2;
+        }
+      } else {
+        // Smooth transition back to neutral height (landing)
+        group.current.position.y = THREE.MathUtils.lerp(group.current.position.y, position.y, 0.1);
+      }
+
+      // Face the camera slightly or look at target rotation
+      // Smoothly rotate towards the target rotation
+      const targetQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), rotation);
+      group.current.quaternion.slerp(targetQuat, 0.1);
+      
+      // Keep XZ positions updated from the manager's lerp (walking effect)
+      group.current.position.x = position.x;
+      group.current.position.z = position.z;
+    }
+  });
+
+  return (
+    <group ref={group}>
+      {/* Body / Torso */}
+      <mesh ref={body} position={[0, 2.5, 0]} castShadow>
+        <boxGeometry args={[1.2, 1.8, 0.8]} />
+        <meshStandardMaterial color="#f472b6" /> {/* Professional Pink/White Uniform */}
+      </mesh>
+      
+      {/* Skirt */}
+      <mesh position={[0, 1.4, 0]} castShadow>
+        <cylinderGeometry args={[0.7, 1.3, 0.7, 12]} />
+        <meshStandardMaterial color="white" />
+      </mesh>
+      
+      {/* Head */}
+      <mesh position={[0, 3.8, 0]} castShadow>
+        <boxGeometry args={[1.1, 1.1, 1.1]} />
+        <meshStandardMaterial color="#ffdbac" />
+      </mesh>
+      
+      {/* Hair (High Ponytail) */}
+      <group position={[0, 4.2, -0.4]}>
+        <mesh castShadow>
+          <boxGeometry args={[1.2, 0.4, 0.6]} />
+          <meshStandardMaterial color="#fbbf24" />
+        </mesh>
+        <mesh position={[0, -0.5, -0.4]} rotation={[0.4, 0, 0]}>
+          <boxGeometry args={[0.4, 1.2, 0.3]} />
+          <meshStandardMaterial color="#fbbf24" />
+        </mesh>
+      </group>
+
+      {/* Arms with Professional Gold Pompoms */}
+      <group ref={armL} position={[-0.8, 3.2, 0]}>
+        <mesh position={[-0.2, -0.5, 0]} castShadow>
+          <boxGeometry args={[0.4, 1.2, 0.4]} />
+          <meshStandardMaterial color="#ffdbac" />
+        </mesh>
+        <mesh position={[-0.3, -1.2, 0]}>
+          <sphereGeometry args={[0.7, 12, 12]} />
+          <meshStandardMaterial color="#fcd34d" emissive="#f59e0b" emissiveIntensity={0.5} />
+        </mesh>
+      </group>
+
+      <group ref={armR} position={[0.8, 3.2, 0]}>
+        <mesh position={[0.2, -0.5, 0]} castShadow>
+          <boxGeometry args={[0.4, 1.2, 0.4]} />
+          <meshStandardMaterial color="#ffdbac" />
+        </mesh>
+        <mesh position={[0.3, -1.2, 0]}>
+          <sphereGeometry args={[0.7, 12, 12]} />
+          <meshStandardMaterial color="#fcd34d" emissive="#f59e0b" emissiveIntensity={0.5} />
+        </mesh>
+      </group>
+
+      {/* Legs */}
+      <mesh position={[-0.3, 0.6, 0]} castShadow>
+        <boxGeometry args={[0.45, 1.2, 0.45]} />
+        <meshStandardMaterial color="#ffdbac" />
+      </mesh>
+      <mesh position={[0.3, 0.6, 0]} castShadow>
+        <boxGeometry args={[0.45, 1.2, 0.45]} />
+        <meshStandardMaterial color="#ffdbac" />
+      </mesh>
+    </group>
+  );
+};
+
+// Manager for 8 Cheerleaders with smooth walking and formation logic
+const CelebrationCheer: React.FC = () => {
+  const [descentY, setDescentY] = useState(40);
+  const [formationId, setFormationId] = useState(0);
+  
+  // Array of 8 current visual positions to lerp in useFrame (for smooth walking)
+  const currentPosRefs = useRef<THREE.Vector3[]>(
+    new Array(8).fill(0).map(() => new THREE.Vector3(0, 40, 0))
+  );
+
+  const formations = [
+    'CIRCLE', // Round formation
+    'V_SHAPE', // Victory V
+    'TWO_LINES', // Parallel lines
+    'X_SHAPE' // Cross formation
+  ];
+
+  // Pick a random formation every 3 seconds
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setFormationId(prev => (prev + 1) % formations.length);
+    }, 3000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Calculate target positions for each cheerleader based on current formation
+  const getTargetLayout = (idx: number, type: string): { pos: [number, number, number], rot: number } => {
+    const radius = 9;
+    const spacing = 4;
+    
+    switch (type) {
+      case 'CIRCLE':
+        const angle = (idx / 8) * Math.PI * 2;
+        return {
+          pos: [Math.cos(angle) * radius, 0, Math.sin(angle) * radius],
+          rot: -angle + Math.PI / 2
+        };
+      case 'V_SHAPE':
+        const vx = (idx - 3.5) * spacing;
+        const vz = Math.abs(vx) * 0.8 - 4;
+        return { pos: [vx, 0, vz], rot: 0 };
+      case 'TWO_LINES':
+        const lineIdx = idx < 4 ? 0 : 1;
+        const posInLine = (idx % 4 - 1.5) * spacing;
+        const lz = lineIdx === 0 ? -3 : 3;
+        return { pos: [posInLine, 0, lz], rot: lineIdx === 0 ? 0 : Math.PI };
+      case 'X_SHAPE':
+        const xFactor = idx < 4 ? 1 : -1;
+        const xpos = (idx % 4 - 1.5) * spacing;
+        const xz = xpos * xFactor;
+        return { pos: [xpos, 0, xz], rot: 0 };
+      default:
+        return { pos: [0, 0, 0], rot: 0 };
+    }
+  };
+
+  useFrame((state, delta) => {
+    // Descent logic (falling from sky)
+    if (descentY > 0) {
+      setDescentY(prev => Math.max(0, prev - delta * 15));
+    }
+
+    // Smooth walking (走位) logic
+    for (let i = 0; i < 8; i++) {
+      const target = getTargetLayout(i, formations[formationId]);
+      const current = currentPosRefs.current[i];
+      
+      // Interpolate X and Z for smooth movement (Walking effect)
+      current.x = THREE.MathUtils.lerp(current.x, target.pos[0], 0.05);
+      current.z = THREE.MathUtils.lerp(current.z, target.pos[2], 0.05);
+      
+      // Height is controlled by descentY
+      current.y = descentY;
+    }
+  });
+
+  return (
+    <group position={[0, 0, 0]}>
+      {new Array(8).fill(0).map((_, i) => {
+        const target = getTargetLayout(i, formations[formationId]);
+        return (
+          <Cheerleader 
+            key={i} 
+            position={currentPosRefs.current[i]} 
+            rotation={target.rot} 
+            delay={i * 0.3} 
+            isDancing={descentY <= 1} // Only start high-energy dance after landing
+          />
+        );
+      })}
+    </group>
+  );
+};
 
 const Firework: React.FC<{ position: [number, number, number], color: string, onComplete: () => void }> = ({ position, color, onComplete }) => {
   const particles = useMemo(() => {
@@ -460,7 +671,12 @@ const World: React.FC<{
         <Monster3D key={monster.id} monster={monster} isSelected={false} />
       ))}
 
-      {isCelebration && <FireworksDisplay />}
+      {isCelebration && (
+        <>
+          <FireworksDisplay />
+          <CelebrationCheer />
+        </>
+      )}
     </>
   );
 };
