@@ -63,11 +63,8 @@ const VictorySpotlights: React.FC = () => {
   useFrame((state) => {
     const t = state.clock.getElapsedTime();
     if (light1.current && light2.current) {
-      // Animate light targets in circles
       target1.current.position.set(Math.sin(t * 1.5) * 30, 0, Math.cos(t * 1.5) * 30);
       target2.current.position.set(Math.cos(t * 1.2) * 35, 0, Math.sin(t * 1.2) * 35);
-      
-      // Cycle colors
       light1.current.color.setHSL((t * 0.1) % 1, 1, 0.5);
       light2.current.color.setHSL((t * 0.1 + 0.5) % 1, 1, 0.5);
     }
@@ -115,7 +112,6 @@ const Cheerleader: React.FC<{
   useFrame((state) => {
     if (group.current) {
       const t = state.clock.getElapsedTime() * 6 + delay;
-      
       if (isDancing) {
         group.current.position.y = position.y + Math.max(0, Math.sin(t) * 2.5);
         if (armL.current && armR.current) {
@@ -157,47 +153,19 @@ const Cheerleader: React.FC<{
         <meshStandardMaterial color="#ffdbac" />
       </mesh>
       <group position={[0, 4.2, -0.4]}>
-        <mesh castShadow>
-          <boxGeometry args={[1.2, 0.5, 0.6]} />
-          <meshStandardMaterial color="#fbbf24" />
-        </mesh>
-        <mesh position={[0, -0.6, -0.5]} rotation={[0.5, 0, 0]}>
-          <boxGeometry args={[0.4, 1.4, 0.3]} />
-          <meshStandardMaterial color="#fbbf24" />
-        </mesh>
+        <mesh castShadow><boxGeometry args={[1.2, 0.5, 0.6]} /><meshStandardMaterial color="#fbbf24" /></mesh>
+        <mesh position={[0, -0.6, -0.5]} rotation={[0.5, 0, 0]}><boxGeometry args={[0.4, 1.4, 0.3]} /><meshStandardMaterial color="#fbbf24" /></mesh>
       </group>
       <group ref={armL} position={[-0.8, 3.2, 0]}>
-        <mesh position={[-0.3, -0.5, 0]} castShadow>
-          <boxGeometry args={[0.4, 1.4, 0.4]} />
-          <meshStandardMaterial color="#ffdbac" />
-        </mesh>
-        <mesh position={[-0.4, -1.3, 0]}>
-          <sphereGeometry args={[0.8, 16, 16]} />
-          <meshStandardMaterial color="#fcd34d" emissive="#f59e0b" emissiveIntensity={1.5} />
-        </mesh>
+        <mesh position={[-0.3, -0.5, 0]} castShadow><boxGeometry args={[0.4, 1.4, 0.4]} /><meshStandardMaterial color="#ffdbac" /></mesh>
+        <mesh position={[-0.4, -1.3, 0]}><sphereGeometry args={[0.8, 16, 16]} /><meshStandardMaterial color="#fcd34d" emissive="#f59e0b" emissiveIntensity={1.5} /></mesh>
       </group>
       <group ref={armR} position={[0.8, 3.2, 0]}>
-        <mesh position={[0.3, -0.5, 0]} castShadow>
-          <boxGeometry args={[0.4, 1.4, 0.4]} />
-          <meshStandardMaterial color="#ffdbac" />
-        </mesh>
-        <mesh position={[0.4, -1.3, 0]}>
-          <sphereGeometry args={[0.8, 16, 16]} />
-          <meshStandardMaterial color="#fcd34d" emissive="#f59e0b" emissiveIntensity={1.5} />
-        </mesh>
+        <mesh position={[0.3, -0.5, 0]} castShadow><boxGeometry args={[0.4, 1.4, 0.4]} /><meshStandardMaterial color="#ffdbac" /></mesh>
+        <mesh position={[0.4, -1.3, 0]}><sphereGeometry args={[0.8, 16, 16]} /><meshStandardMaterial color="#fcd34d" emissive="#f59e0b" emissiveIntensity={1.5} /></mesh>
       </group>
-      <group ref={legL} position={[-0.35, 1.2, 0]}>
-        <mesh position={[0, -0.6, 0]} castShadow>
-          <boxGeometry args={[0.5, 1.2, 0.5]} />
-          <meshStandardMaterial color="#ffdbac" />
-        </mesh>
-      </group>
-      <group ref={legR} position={[0.35, 1.2, 0]}>
-        <mesh position={[0, -0.6, 0]} castShadow>
-          <boxGeometry args={[0.5, 1.2, 0.5]} />
-          <meshStandardMaterial color="#ffdbac" />
-        </mesh>
-      </group>
+      <group ref={legL} position={[-0.35, 1.2, 0]}><mesh position={[0, -0.6, 0]} castShadow><boxGeometry args={[0.5, 1.2, 0.5]} /><meshStandardMaterial color="#ffdbac" /></mesh></group>
+      <group ref={legR} position={[0.35, 1.2, 0]}><mesh position={[0, -0.6, 0]} castShadow><boxGeometry args={[0.5, 1.2, 0.5]} /><meshStandardMaterial color="#ffdbac" /></mesh></group>
     </group>
   );
 };
@@ -298,7 +266,6 @@ const Firework: React.FC<{ position: [number, number, number], color: string, on
         p.offset.add(p.velocity.clone().multiplyScalar(delta));
         p.velocity.y -= 9.8 * delta * 0.6; 
         child.position.set(p.offset.x, p.offset.y, p.offset.z);
-        // Fix: Properly handle potential array of materials and cast to any to access 'opacity' property
         const mesh = child as THREE.Mesh;
         if (mesh.material) {
           if (Array.isArray(mesh.material)) {
@@ -338,18 +305,9 @@ const FireworksDisplay: React.FC = () => {
 
 const Tree: React.FC<{ prop: WorldProp }> = ({ prop }) => (
   <group position={[prop.x, 0, prop.z]} scale={[prop.scale, prop.scale, prop.scale]}>
-    <mesh position={[0, 1.5, 0]} castShadow receiveShadow>
-      <cylinderGeometry args={[0.4, 0.6, 3, 7]} />
-      <meshStandardMaterial color="#5d4037" />
-    </mesh>
-    <mesh position={[0, 4, 0]} castShadow receiveShadow>
-      <dodecahedronGeometry args={[2.2]} />
-      <meshStandardMaterial color="#15803d" />
-    </mesh>
-    <mesh position={[0, 5.5, 0]} castShadow receiveShadow>
-      <dodecahedronGeometry args={[1.5]} />
-      <meshStandardMaterial color="#22c55e" />
-    </mesh>
+    <mesh position={[0, 1.5, 0]} castShadow receiveShadow><cylinderGeometry args={[0.4, 0.6, 3, 7]} /><meshStandardMaterial color="#5d4037" /></mesh>
+    <mesh position={[0, 4, 0]} castShadow receiveShadow><dodecahedronGeometry args={[2.2]} /><meshStandardMaterial color="#15803d" /></mesh>
+    <mesh position={[0, 5.5, 0]} castShadow receiveShadow><dodecahedronGeometry args={[1.5]} /><meshStandardMaterial color="#22c55e" /></mesh>
   </group>
 );
 
@@ -453,7 +411,7 @@ const World: React.FC<{ playerPos: {x: number, z: number, rotation: number}; mon
       <Stars radius={100} depth={50} count={5000} factor={4} saturation={0} fade speed={1} />
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow><planeGeometry args={[WORLD_SIZE, WORLD_SIZE]} /><meshStandardMaterial color="#4ade80" /></mesh>
       <gridHelper args={[WORLD_SIZE, 40, "#15803d", "#15803d"]} position={[0, 0.1, 0]} />
-      <PlayerModel position={[playerPos.x, 0, playerPos.z]} rotation={playerPos.rotation} isMoving={!isBattling && (controls.up || Proxy || controls.down || Proxy || controls.left || Proxy || controls.right)} />
+      <PlayerModel position={[playerPos.x, 0, playerPos.z]} rotation={playerPos.rotation} isMoving={!isBattling && (controls.up || controls.down || controls.left || controls.right)} />
       {props.map(p => <Tree key={p.id} prop={p} />)}
       {monsters.map(m => !m.isDefeated && <Monster3D key={m.id} monster={m} isSelected={false} />)}
       {isCelebration && (
@@ -616,14 +574,14 @@ export default function App() {
       )}
 
       {isCelebration && (
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 pointer-events-none text-center animate-bounce">
-          <div className="bg-yellow-400 text-black px-6 py-3 rounded-full font-black text-3xl shadow-[0_0_30px_rgba(234,179,8,0.6)] flex items-center gap-3">
-            <Sparkles className="w-8 h-8" />
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 pointer-events-none text-center flex flex-col items-center gap-1">
+          <div className="bg-yellow-400 text-black px-4 py-1.5 rounded-full font-black text-lg shadow-[0_0_20px_rgba(234,179,8,0.7)] flex items-center gap-2 animate-bounce">
+            <Sparkles className="w-4 h-4" />
             VICTORY SHOW!
-            <Sparkles className="w-8 h-8" />
+            <Sparkles className="w-4 h-4" />
           </div>
-          <div className="mt-4 text-white font-bold text-xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] flex items-center justify-center gap-2">
-            <Timer className="w-5 h-5" /> {celebrationTimeLeft}s
+          <div className="bg-black/50 backdrop-blur-sm text-white px-3 py-1 rounded-lg font-black text-base drop-shadow-lg flex items-center justify-center gap-1.5 border border-white/20">
+            <Timer className="w-4 h-4 text-yellow-400" /> {celebrationTimeLeft}s
           </div>
         </div>
       )}
