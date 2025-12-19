@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Sky, Stars, Text, useFont } from '@react-three/drei';
@@ -64,35 +65,59 @@ const Cheerleader: React.FC<{
   const group = useRef<THREE.Group>(null);
   const armL = useRef<THREE.Group>(null);
   const armR = useRef<THREE.Group>(null);
-  const body = useRef<THREE.Mesh>(null);
+  const body = useRef<THREE.Group>(null);
+  const head = useRef<THREE.Mesh>(null);
+  const legL = useRef<THREE.Mesh>(null);
+  const legR = useRef<THREE.Mesh>(null);
 
   useFrame((state) => {
     if (group.current) {
-      const t = state.clock.getElapsedTime() * 5 + delay;
+      const t = state.clock.getElapsedTime() * 6 + delay;
       
       // Professional dancing animation
       if (isDancing) {
-        // High-energy jumping
-        group.current.position.y = position.y + Math.max(0, Math.sin(t) * 1.8);
+        // High-energy jumping with rhythmic bounce
+        group.current.position.y = position.y + Math.abs(Math.sin(t)) * 1.5;
         
         if (armL.current && armR.current) {
-          // Dynamic arm movements (Wave/V-motion)
-          armL.current.rotation.z = Math.sin(t * 1.5) * 2.5;
-          armR.current.rotation.z = -Math.sin(t * 1.5) * 2.5;
-          armL.current.rotation.x = Math.cos(t) * 0.5;
-          armR.current.rotation.x = Math.cos(t) * 0.5;
+          // Dynamic arm movements (High-V, Wave, Cross)
+          const armPhase = Math.floor(t / 4) % 3;
+          if (armPhase === 0) {
+            // High V
+            armL.current.rotation.z = 2.2 + Math.sin(t * 2) * 0.3;
+            armR.current.rotation.z = -2.2 - Math.sin(t * 2) * 0.3;
+          } else if (armPhase === 1) {
+            // Pompom Shake at sides
+            armL.current.rotation.z = 0.5 + Math.sin(t * 4) * 0.8;
+            armR.current.rotation.z = -0.5 - Math.sin(t * 4) * 0.8;
+          } else {
+            // Alternating waves
+            armL.current.rotation.x = Math.sin(t * 3) * 1.5;
+            armR.current.rotation.x = Math.cos(t * 3) * 1.5;
+          }
         }
         
         if (body.current) {
-          // Hip sway
-          body.current.rotation.z = Math.sin(t) * 0.2;
+          // Hip sway and upper body tilt
+          body.current.rotation.z = Math.sin(t * 0.5) * 0.15;
+          body.current.rotation.y = Math.cos(t * 0.5) * 0.2;
+        }
+
+        if (head.current) {
+          // Rhythmic head bobs
+          head.current.rotation.x = Math.sin(t * 2) * 0.1;
+        }
+
+        if (legL.current && legR.current) {
+          // High knee kicks during jump
+          legL.current.rotation.x = Math.sin(t * 1.5) * 0.4;
+          legR.current.rotation.x = Math.cos(t * 1.5) * 0.4;
         }
       } else {
         // Smooth transition back to neutral height (landing)
         group.current.position.y = THREE.MathUtils.lerp(group.current.position.y, position.y, 0.1);
       }
 
-      // Face the camera slightly or look at target rotation
       // Smoothly rotate towards the target rotation
       const targetQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), rotation);
       group.current.quaternion.slerp(targetQuat, 0.1);
@@ -105,68 +130,70 @@ const Cheerleader: React.FC<{
 
   return (
     <group ref={group}>
-      {/* Body / Torso */}
-      <mesh ref={body} position={[0, 2.5, 0]} castShadow>
-        <boxGeometry args={[1.2, 1.8, 0.8]} />
-        <meshStandardMaterial color="#f472b6" /> {/* Professional Pink/White Uniform */}
-      </mesh>
-      
-      {/* Skirt */}
-      <mesh position={[0, 1.4, 0]} castShadow>
-        <cylinderGeometry args={[0.7, 1.3, 0.7, 12]} />
-        <meshStandardMaterial color="white" />
-      </mesh>
-      
-      {/* Head */}
-      <mesh position={[0, 3.8, 0]} castShadow>
-        <boxGeometry args={[1.1, 1.1, 1.1]} />
-        <meshStandardMaterial color="#ffdbac" />
-      </mesh>
-      
-      {/* Hair (High Ponytail) */}
-      <group position={[0, 4.2, -0.4]}>
-        <mesh castShadow>
-          <boxGeometry args={[1.2, 0.4, 0.6]} />
-          <meshStandardMaterial color="#fbbf24" />
+      <group ref={body}>
+        {/* Body / Torso */}
+        <mesh position={[0, 2.5, 0]} castShadow>
+          <boxGeometry args={[1.2, 1.8, 0.8]} />
+          <meshStandardMaterial color="#f472b6" /> {/* Professional Pink/White Uniform */}
         </mesh>
-        <mesh position={[0, -0.5, -0.4]} rotation={[0.4, 0, 0]}>
-          <boxGeometry args={[0.4, 1.2, 0.3]} />
-          <meshStandardMaterial color="#fbbf24" />
+        
+        {/* Skirt */}
+        <mesh position={[0, 1.4, 0]} castShadow>
+          <cylinderGeometry args={[0.7, 1.3, 0.7, 12]} />
+          <meshStandardMaterial color="white" />
         </mesh>
-      </group>
-
-      {/* Arms with Professional Gold Pompoms */}
-      <group ref={armL} position={[-0.8, 3.2, 0]}>
-        <mesh position={[-0.2, -0.5, 0]} castShadow>
-          <boxGeometry args={[0.4, 1.2, 0.4]} />
+        
+        {/* Head */}
+        <mesh ref={head} position={[0, 3.8, 0]} castShadow>
+          <boxGeometry args={[1.1, 1.1, 1.1]} />
           <meshStandardMaterial color="#ffdbac" />
         </mesh>
-        <mesh position={[-0.3, -1.2, 0]}>
-          <sphereGeometry args={[0.7, 12, 12]} />
-          <meshStandardMaterial color="#fcd34d" emissive="#f59e0b" emissiveIntensity={0.5} />
-        </mesh>
-      </group>
+        
+        {/* Hair (High Ponytail) */}
+        <group position={[0, 4.2, -0.4]}>
+          <mesh castShadow>
+            <boxGeometry args={[1.2, 0.4, 0.6]} />
+            <meshStandardMaterial color="#fbbf24" />
+          </mesh>
+          <mesh position={[0, -0.5, -0.4]} rotation={[0.4, 0, 0]}>
+            <boxGeometry args={[0.4, 1.2, 0.3]} />
+            <meshStandardMaterial color="#fbbf24" />
+          </mesh>
+        </group>
 
-      <group ref={armR} position={[0.8, 3.2, 0]}>
-        <mesh position={[0.2, -0.5, 0]} castShadow>
-          <boxGeometry args={[0.4, 1.2, 0.4]} />
+        {/* Arms with Professional Gold Pompoms */}
+        <group ref={armL} position={[-0.8, 3.2, 0]}>
+          <mesh position={[-0.2, -0.5, 0]} castShadow>
+            <boxGeometry args={[0.4, 1.2, 0.4]} />
+            <meshStandardMaterial color="#ffdbac" />
+          </mesh>
+          <mesh position={[-0.3, -1.2, 0]}>
+            <sphereGeometry args={[0.7, 12, 12]} />
+            <meshStandardMaterial color="#fcd34d" emissive="#f59e0b" emissiveIntensity={0.8} />
+          </mesh>
+        </group>
+
+        <group ref={armR} position={[0.8, 3.2, 0]}>
+          <mesh position={[0.2, -0.5, 0]} castShadow>
+            <boxGeometry args={[0.4, 1.2, 0.4]} />
+            <meshStandardMaterial color="#ffdbac" />
+          </mesh>
+          <mesh position={[0.3, -1.2, 0]}>
+            <sphereGeometry args={[0.7, 12, 12]} />
+            <meshStandardMaterial color="#fcd34d" emissive="#f59e0b" emissiveIntensity={0.8} />
+          </mesh>
+        </group>
+
+        {/* Legs */}
+        <mesh ref={legL} position={[-0.3, 0.6, 0]} castShadow>
+          <boxGeometry args={[0.45, 1.2, 0.45]} />
           <meshStandardMaterial color="#ffdbac" />
         </mesh>
-        <mesh position={[0.3, -1.2, 0]}>
-          <sphereGeometry args={[0.7, 12, 12]} />
-          <meshStandardMaterial color="#fcd34d" emissive="#f59e0b" emissiveIntensity={0.5} />
+        <mesh ref={legR} position={[0.3, 0.6, 0]} castShadow>
+          <boxGeometry args={[0.45, 1.2, 0.45]} />
+          <meshStandardMaterial color="#ffdbac" />
         </mesh>
       </group>
-
-      {/* Legs */}
-      <mesh position={[-0.3, 0.6, 0]} castShadow>
-        <boxGeometry args={[0.45, 1.2, 0.45]} />
-        <meshStandardMaterial color="#ffdbac" />
-      </mesh>
-      <mesh position={[0.3, 0.6, 0]} castShadow>
-        <boxGeometry args={[0.45, 1.2, 0.45]} />
-        <meshStandardMaterial color="#ffdbac" />
-      </mesh>
     </group>
   );
 };
@@ -182,24 +209,25 @@ const CelebrationCheer: React.FC = () => {
   );
 
   const formations = [
-    'CIRCLE', // Round formation
-    'V_SHAPE', // Victory V
-    'TWO_LINES', // Parallel lines
-    'X_SHAPE' // Cross formation
+    'CIRCLE',      // Round formation
+    'V_SHAPE',    // Victory V
+    'DIAMOND',    // Diamond shape
+    'X_CROSS',    // Cross formation
+    'TWO_LINES',  // Parallel lines
   ];
 
-  // Pick a random formation every 3 seconds
+  // Pick a random formation every 4 seconds for clearer "walking" time
   useEffect(() => {
     const timer = setInterval(() => {
       setFormationId(prev => (prev + 1) % formations.length);
-    }, 3000);
+    }, 4000);
     return () => clearInterval(timer);
   }, []);
 
   // Calculate target positions for each cheerleader based on current formation
   const getTargetLayout = (idx: number, type: string): { pos: [number, number, number], rot: number } => {
-    const radius = 9;
-    const spacing = 4;
+    const radius = 10;
+    const spacing = 5;
     
     switch (type) {
       case 'CIRCLE':
@@ -210,18 +238,25 @@ const CelebrationCheer: React.FC = () => {
         };
       case 'V_SHAPE':
         const vx = (idx - 3.5) * spacing;
-        const vz = Math.abs(vx) * 0.8 - 4;
+        const vz = Math.abs(vx) * 0.7 - 5;
         return { pos: [vx, 0, vz], rot: 0 };
+      case 'DIAMOND':
+        // 1-2-2-2-1 formation for 8 is tricky, let's do a standard diamond ring
+        const dAngle = (idx / 8) * Math.PI * 2;
+        const dist = (idx % 2 === 0) ? radius : radius * 0.7;
+        return {
+          pos: [Math.cos(dAngle) * dist, 0, Math.sin(dAngle) * dist],
+          rot: -dAngle
+        };
+      case 'X_CROSS':
+        const side = idx < 4 ? 1 : -1;
+        const offset = (idx % 4 - 1.5) * spacing;
+        return { pos: [offset, 0, offset * side], rot: 0 };
       case 'TWO_LINES':
-        const lineIdx = idx < 4 ? 0 : 1;
-        const posInLine = (idx % 4 - 1.5) * spacing;
-        const lz = lineIdx === 0 ? -3 : 3;
-        return { pos: [posInLine, 0, lz], rot: lineIdx === 0 ? 0 : Math.PI };
-      case 'X_SHAPE':
-        const xFactor = idx < 4 ? 1 : -1;
-        const xpos = (idx % 4 - 1.5) * spacing;
-        const xz = xpos * xFactor;
-        return { pos: [xpos, 0, xz], rot: 0 };
+        const isBack = idx < 4;
+        const xLine = (idx % 4 - 1.5) * (spacing * 1.2);
+        const zLine = isBack ? -4 : 4;
+        return { pos: [xLine, 0, zLine], rot: isBack ? 0 : Math.PI };
       default:
         return { pos: [0, 0, 0], rot: 0 };
     }
@@ -230,7 +265,7 @@ const CelebrationCheer: React.FC = () => {
   useFrame((state, delta) => {
     // Descent logic (falling from sky)
     if (descentY > 0) {
-      setDescentY(prev => Math.max(0, prev - delta * 15));
+      setDescentY(prev => Math.max(0, prev - delta * 20));
     }
 
     // Smooth walking (走位) logic
@@ -239,8 +274,9 @@ const CelebrationCheer: React.FC = () => {
       const current = currentPosRefs.current[i];
       
       // Interpolate X and Z for smooth movement (Walking effect)
-      current.x = THREE.MathUtils.lerp(current.x, target.pos[0], 0.05);
-      current.z = THREE.MathUtils.lerp(current.z, target.pos[2], 0.05);
+      // Roblox-style lerp: slightly slower for more "walking" visibility
+      current.x = THREE.MathUtils.lerp(current.x, target.pos[0], 0.04);
+      current.z = THREE.MathUtils.lerp(current.z, target.pos[2], 0.04);
       
       // Height is controlled by descentY
       current.y = descentY;
@@ -256,7 +292,7 @@ const CelebrationCheer: React.FC = () => {
             key={i} 
             position={currentPosRefs.current[i]} 
             rotation={target.rot} 
-            delay={i * 0.3} 
+            delay={i * 0.4} 
             isDancing={descentY <= 1} // Only start high-energy dance after landing
           />
         );
@@ -269,9 +305,9 @@ const Firework: React.FC<{ position: [number, number, number], color: string, on
   const particles = useMemo(() => {
     return new Array(50).fill(0).map(() => ({
       velocity: new THREE.Vector3(
-        (Math.random() - 0.5) * 10,
-        (Math.random() - 0.5) * 10,
-        (Math.random() - 0.5) * 10
+        (Math.random() - 0.5) * 12,
+        (Math.random() - 0.2) * 12,
+        (Math.random() - 0.5) * 12
       ),
       offset: new THREE.Vector3(0, 0, 0)
     }));
@@ -282,7 +318,7 @@ const Firework: React.FC<{ position: [number, number, number], color: string, on
 
   useFrame((state, delta) => {
     setElapsed(prev => prev + delta);
-    if (elapsed > 1.5) {
+    if (elapsed > 2.0) {
       onComplete();
       return;
     }
@@ -291,11 +327,11 @@ const Firework: React.FC<{ position: [number, number, number], color: string, on
       groupRef.current.children.forEach((child, i) => {
         const p = particles[i];
         p.offset.add(p.velocity.clone().multiplyScalar(delta));
-        p.velocity.y -= 9.8 * delta * 0.5; 
+        p.velocity.y -= 9.8 * delta * 0.4; 
         child.position.set(p.offset.x, p.offset.y, p.offset.z);
         
         const material = (child as THREE.Mesh).material as THREE.MeshBasicMaterial;
-        material.opacity = Math.max(0, 1 - elapsed / 1.5);
+        material.opacity = Math.max(0, 1 - elapsed / 2.0);
       });
     }
   });
@@ -317,13 +353,13 @@ const FireworksDisplay: React.FC = () => {
   const nextId = useRef(0);
 
   useFrame(() => {
-    if (Math.random() < 0.08) { 
+    if (Math.random() < 0.1) { 
       const id = nextId.current++;
-      const x = (Math.random() - 0.5) * 100;
-      const z = (Math.random() - 0.5) * 100;
-      const y = 2 + Math.random() * 10; 
+      const x = (Math.random() - 0.5) * 120;
+      const z = (Math.random() - 0.5) * 120;
+      const y = 5 + Math.random() * 15; 
       
-      const rainbowColors = ['#ff0000', '#ff7f00', '#ffff00', '#00ff00', '#0000ff', '#4b0082', '#9400d3'];
+      const rainbowColors = ['#ff0000', '#ff7f00', '#ffff00', '#00ff00', '#0000ff', '#4b0082', '#9400d3', '#f472b6', '#ffffff'];
       const color = rainbowColors[Math.floor(Math.random() * rainbowColors.length)];
 
       setFireworks(prev => [...prev, { id, position: [x, y, z], color }]);
@@ -928,13 +964,14 @@ export default function App() {
     playExplosionSound();
     const interval = setInterval(() => {
         playExplosionSound();
-    }, 800);
+    }, 1000); // Rhythmic explosion during celebration
 
+    // Professional 30-second celebration
     setTimeout(() => {
       clearInterval(interval);
       setIsCelebration(false);
       setGameState(prev => ({ ...prev, status: 'VICTORY' }));
-    }, 15000); 
+    }, 30000); 
   };
 
   const handlePlayerMove = (newPos: {x: number, z: number}, rotation: number) => {
