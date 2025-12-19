@@ -8,7 +8,7 @@ import { Idiom, GameState, FloatingText, WorldMonster, GameMode, WrongRecord, Wo
 import { Button } from './components/Button';
 import { HealthBar } from './components/HealthBar';
 import { FloatingTextDisplay } from './components/FloatingTextDisplay';
-import { Sword, Trophy, Zap, RefreshCw, Skull, Map as MapIcon, Compass, BookOpen, X, List, ArrowLeftRight, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Trash2, Library, LogOut, Users, Swords, Link as LinkIcon, AlertCircle, Loader2, FileJson, Copy, Check, Sparkles, Gamepad2, History, Timer } from 'lucide-react';
+import { Sword, Trophy, Zap, RefreshCw, Skull, Map as MapIcon, Compass, BookOpen, X, List, ArrowLeftRight, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Trash2, Library, LogOut, Users, Swords, Link as LinkIcon, AlertCircle, Loader2, FileJson, Copy, Check, Sparkles, Gamepad2, History, Timer, Quote } from 'lucide-react';
 
 // -----------------------------------------------------------------------------
 // Constants & Configuration
@@ -593,7 +593,16 @@ export default function App() {
                 <div className="bg-slate-800 border-2 border-green-500 rounded-2xl p-8 max-w-lg w-full text-center shadow-2xl">
                    <Check className="w-16 h-16 text-green-500 mx-auto mb-4" />
                    <h2 className="text-4xl font-black text-yellow-400 mb-2">{gameQueue[currentMonsterId!].word}</h2>
-                   <p className="text-slate-300 mb-6">{gameQueue[currentMonsterId!].definition}</p>
+                   <p className="text-slate-300 mb-4 font-bold">{gameQueue[currentMonsterId!].definition}</p>
+                   
+                   {gameQueue[currentMonsterId!].example && (
+                     <div className="bg-slate-700/50 p-4 rounded-xl text-left mb-6 border-l-4 border-yellow-500 relative">
+                       <Quote className="absolute top-2 right-2 w-4 h-4 text-slate-600 opacity-50" />
+                       <p className="text-xs font-black text-yellow-500 uppercase tracking-widest mb-1">例句 Example</p>
+                       <p className="text-slate-200 italic leading-relaxed">{gameQueue[currentMonsterId!].example}</p>
+                     </div>
+                   )}
+                   
                    <Button className="w-full bg-green-600" onClick={handleFeedbackNext}>Next Monster</Button>
                 </div>
              </div>
