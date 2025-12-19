@@ -392,13 +392,67 @@ export default function App() {
   useEffect(() => localStorage.setItem('idiomQuest_wrongRecords', JSON.stringify(wrongIdioms)), [wrongIdioms]);
   const addToRecentUrls = (url: string) => setRecentUrls(prev => { const n = [url, ...prev.filter(u => u !== url)].slice(0, 10); localStorage.setItem('idiomQuest_recentUrls', JSON.stringify(n)); return n; });
 
-  const playExplosionSound = () => {
+  const initAudio = () => {
     if (!audioCtxRef.current) audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
-    const ctx = audioCtxRef.current; if (ctx.state === 'suspended') ctx.resume();
+    if (audioCtxRef.current.state === 'suspended') audioCtxRef.current.resume();
+    return audioCtxRef.current;
+  };
+
+  const playExplosionSound = () => {
+    const ctx = initAudio();
     const t = ctx.currentTime, osc = ctx.createOscillator(), g1 = ctx.createGain();
     osc.type = 'square'; osc.frequency.setValueAtTime(100, t); osc.frequency.exponentialRampToValueAtTime(0.01, t + 0.5);
     g1.gain.setValueAtTime(0.5, t); g1.gain.exponentialRampToValueAtTime(0.01, t + 0.5);
     osc.connect(g1); g1.connect(ctx.destination); osc.start(t); osc.stop(t + 0.5);
+  };
+
+  const playAttackSound = () => {
+    const ctx = initAudio();
+    const t = ctx.currentTime, osc = ctx.createOscillator(), g = ctx.createGain();
+    osc.type = 'triangle'; 
+    osc.frequency.setValueAtTime(440, t);
+    osc.frequency.exponentialRampToValueAtTime(880, t + 0.1);
+    g.gain.setValueAtTime(0.3, t);
+    g.gain.exponentialRampToValueAtTime(0.01, t + 0.1);
+    osc.connect(g); g.connect(ctx.destination);
+    osc.start(t); osc.stop(t + 0.1);
+  };
+
+  const playHitSound = () => {
+    const ctx = initAudio();
+    const t = ctx.currentTime, osc = ctx.createOscillator(), g = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(150, t);
+    osc.frequency.exponentialRampToValueAtTime(50, t + 0.2);
+    g.gain.setValueAtTime(0.6, t);
+    g.gain.exponentialRampToValueAtTime(0.01, t + 0.2);
+    osc.connect(g); g.connect(ctx.destination);
+    osc.start(t); osc.stop(t + 0.2);
+  };
+
+  const playSuccessSound = () => {
+    const ctx = initAudio();
+    const t = ctx.currentTime;
+    [880, 1100, 1320].forEach((freq, i) => {
+      const osc = ctx.createOscillator(), g = ctx.createGain();
+      osc.type = 'sine'; osc.frequency.setValueAtTime(freq, t + i * 0.05);
+      g.gain.setValueAtTime(0.2, t + i * 0.05);
+      g.gain.exponentialRampToValueAtTime(0.01, t + i * 0.05 + 0.3);
+      osc.connect(g); g.connect(ctx.destination);
+      osc.start(t + i * 0.05); osc.stop(t + i * 0.05 + 0.3);
+    });
+  };
+
+  const playFailureSound = () => {
+    const ctx = initAudio();
+    const t = ctx.currentTime, osc = ctx.createOscillator(), g = ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(220, t);
+    osc.frequency.linearRampToValueAtTime(110, t + 0.4);
+    g.gain.setValueAtTime(0.4, t);
+    g.gain.exponentialRampToValueAtTime(0.01, t + 0.4);
+    osc.connect(g); g.connect(ctx.destination);
+    osc.start(t); osc.stop(t + 0.4);
   };
 
   const fetchAndValidateCustomData = async (url: string): Promise<Idiom[]> => {
@@ -457,10 +511,16 @@ export default function App() {
 
   const handleAttack = (opt: Idiom) => {
     if (currentMonsterId === null || selectedWrongIds.includes(opt.id)) return;
-    const q = gameQueue[currentMonsterId!]; if (opt.id === q.id) {
+    
+    playAttackSound();
+    const q = gameQueue[currentMonsterId!]; 
+    if (opt.id === q.id) {
+      playHitSound();
+      playSuccessSound();
       triggerFloatingText("1000", 'damage'); triggerFloatingText("+5 HP", "heal");
       setGameState(p => ({ ...p, score: p.score + (100 * (p.streak + 1)), streak: p.streak + 1, playerHp: Math.min(p.maxPlayerHp, p.playerHp + 5), enemyHp: 0 })); setShowFeedback(true);
     } else {
+      playFailureSound();
       triggerFloatingText("Miss", "miss"); setSelectedWrongIds(prev => [...prev, opt.id]);
       setGameState(p => ({ ...p, streak: 0, playerHp: Math.max(0, p.playerHp - 15) }));
       if (!wrongIdioms.find(r => r.idiom.id === q.id && r.mode === gameMode)) setWrongIdioms(prev => [...prev, { idiom: q, mode: gameMode }]);
@@ -499,6 +559,8 @@ export default function App() {
           <World playerPos={playerPos} monsters={worldMonsters} props={worldProps} onPlayerMove={handlePlayerMove} isBattling={gameState.status === 'BATTLE'} isCelebration={isCelebration} />
         </Canvas>
       </div>
+
+      <FloatingTextDisplay items={floatingTexts} />
 
       {isCelebration && (
         <div className="absolute top-8 left-1/2 -translate-x-1/2 z-50">
@@ -589,3 +651,4 @@ export default function App() {
     </div>
   );
 }
+
