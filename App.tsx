@@ -8,6 +8,7 @@ import { Idiom, GameState, FloatingText, WorldMonster, GameMode, WrongRecord, Wo
 import { Button } from './components/Button';
 import { HealthBar } from './components/HealthBar';
 import { FloatingTextDisplay } from './components/FloatingTextDisplay';
+import ReloadPrompt from './components/ReloadPrompt';
 import { Sword, Trophy, Zap, RefreshCw, Skull, Map as MapIcon, Compass, BookOpen, X, List, ArrowLeftRight, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Trash2, Library, LogOut, Users, Swords, Link as LinkIcon, AlertCircle, Loader2, FileJson, Copy, Check, Sparkles, Gamepad2, History, FastForward } from 'lucide-react';
 
 // -----------------------------------------------------------------------------
@@ -648,6 +649,7 @@ export default function App() {
           </div>
         </>
       )}
+      <ReloadPrompt />
     </div>
   );
 }
